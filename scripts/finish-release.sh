@@ -22,12 +22,25 @@ fi
 echo "Running tests..."
 npm test
 
-# If tests pass, merge to main
+# If tests pass, proceed with release
 if [ $? -eq 0 ]; then
   echo "Tests passed. Proceeding with release..."
   
-  # Create version tag
-  git tag -a "v$VERSION" -m "Release version $VERSION"
+  # Generate changelog
+  echo "Generating changelog..."
+  CHANGELOG=$(./scripts/generate-changelog.sh)
+  
+  # Create temporary file for tag message
+  TEMP_MSG=$(mktemp)
+  echo "Release version $VERSION" > "$TEMP_MSG"
+  echo "" >> "$TEMP_MSG"
+  echo "$CHANGELOG" >> "$TEMP_MSG"
+  
+  # Create version tag with changelog
+  git tag -a "v$VERSION" -F "$TEMP_MSG"
+  
+  # Clean up temporary file
+  rm "$TEMP_MSG"
   
   # Merge to main
   git checkout main
@@ -41,6 +54,9 @@ if [ $? -eq 0 ]; then
   git branch -d "$BRANCH"
   
   echo "Release v$VERSION completed successfully!"
+  echo "Changelog:"
+  echo "$CHANGELOG"
+  echo ""
   echo "The semantic-release process will automatically create a new release based on the commit history."
 else
   echo "Tests failed. Please fix the issues and try again."
