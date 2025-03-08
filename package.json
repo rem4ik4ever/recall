@@ -22,6 +22,7 @@
     "release": "semantic-release",
     "create-release": "chmod +x ./scripts/create-release.sh && ./scripts/create-release.sh",
     "finish-release": "chmod +x ./scripts/finish-release.sh && ./scripts/finish-release.sh",
+    "changelog": "chmod +x ./scripts/generate-changelog.sh && ./scripts/generate-changelog.sh",
     "chat": "ts-node playground/test-agent.ts",
     "redis-search": "ts-node playground/redis-search-pl.ts",
     "redis-seed": "ts-node playground/seed-animals.ts",
