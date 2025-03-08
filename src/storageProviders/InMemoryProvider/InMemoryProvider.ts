@@ -1,7 +1,6 @@
 import { CoreMessage } from 'ai';
 import { MemoryState, CoreMemoryEntry, ArchiveEntry } from '../../types';
 import { StorageProvider } from '../storage-provider';
-import Fuse from 'fuse.js';
 
 export class InMemoryProvider implements StorageProvider {
   // Separate storage maps for each component
