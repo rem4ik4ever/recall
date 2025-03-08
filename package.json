@@ -1,0 +1,56 @@
+{
+  "name": "@rkim/recall",
+  "version": "0.0.1",
+  "description": "A TypeScript package for AI SDK memory functionality",
+  "author": "rkim",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rem4ik4ever/recall.git"
+  },
+  "keywords": [
+    "memory",
+    "recall",
+    "typescript"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "chat": "ts-node playground/test-agent.ts",
+    "redis-search": "ts-node playground/redis-search-pl.ts",
+    "redis-seed": "ts-node playground/seed-animals.ts",
+    "chroma-search": "ts-node playground/chromadb-search-pl.ts",
+    "chroma-seed": "ts-node playground/seed-animals-chroma.ts"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@redis/search": "^1.2.0",
+    "@ai-sdk/openai": "^1.1.13",
+    "ai": "^4.1.45",
+    "fuse.js": "^7.1.0",
+    "redis": "^4.7.0",
+    "tiktoken": "^1.0.20"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.24",
+    "csv-parse": "^5.6.0",
+    "csv-stringify": "^6.5.2",
+    "dotenv": "^16.4.5",
+    "install": "^0.13.0",
+    "jest": "^29.7.0",
+    "npm": "^11.1.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
+  }
+}
