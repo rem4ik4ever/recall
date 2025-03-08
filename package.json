@@ -1,5 +1,5 @@
 {
-  "name": "@rkim/recall",
+  "name": "recall",
   "version": "0.0.1",
   "type": "module",
   "description": "A TypeScript package for AI SDK memory functionality",
