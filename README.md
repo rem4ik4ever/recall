@@ -1,13 +1,13 @@
 # @rkim/recall
 
-A memory management system for AI applications that provides persistent core memory, chat history management, and RAG (Retrieval-Augmented Generation) capabilities.
+A memory management for AI applications using that provides persistent core memory, chat history management, and RAG (Retrieval-Augmented Generation) capabilities.
 
 ## Features
 
 - 🧠 **Core Memory**: Persistent memory that stays in system messages
 - 💬 **Chat History**: Manage conversation history across multiple threads
 - 📚 **Archive Memory**: RAG (Retrieval-Augmented Generation) support for long-term memory
-- 🔄 **Multiple Storage Providers**: Support for in-memory and Redis storage
+- 🔄 **Multiple Storage Providers**: Support for in-memory and Redis storage also add your own
 
 ## Installation
 
@@ -94,12 +94,33 @@ const memory = new Recall({
   ]
 });
 
-// Update core memory
-await memory.updateCoreMemory('user_preferences', {
-  language: 'Spanish',
-  tone: 'Casual'
+// Create a chat session to access memory tools
+const session = await memory.createChatSession('user_123', 'main');
+
+// Pass tools to AI Agent
+import { generateText } from 'ai';
+
+const result = await generateText({
+  model: 'gpt-4',
+  tools: session.tools,  // Memory tools are automatically available to the AI
+  messages: [
+    {
+      role: 'system',
+      content: 'You are a helpful assistant that remembers user preferences.'
+    },
+    {
+      role: 'user',
+      content: 'Remember that I prefer technical explanations and my name is Alex.'
+    }
+  ],
 });
 ```
+
+The AI agent will have access to these memory management tools:
+- `coreMemoryReplace`: Update entire memory blocks
+- `coreMemoryAppend`: Add information to existing blocks
+- `archivalMemorySearch`: Search through archived information
+- `archivalMemoryInsert`: Add new information to archive
 
 ## Chat History
 
@@ -196,6 +217,63 @@ class CustomArchiveProvider implements ArchiveProvider {
   // Implement archive methods
 }
 ```
+
+## Using with AI Agents
+
+Memory tools can be passed directly to AI agents for autonomous memory management:
+
+```typescript
+import { generateText } from 'ai';
+
+// Initialize memory and create session as shown in Quick Start
+const session = await memory.createChatSession('user_123', 'main');
+const { tools } = session;
+
+const result = await generateText({
+  model: 'gpt-4',
+  tools,  // Pass the memory tools to the AI
+  messages: [
+    {
+      role: 'system',
+      content: 'You are a helpful assistant that remembers user preferences.'
+    },
+    {
+      role: 'user',
+      content: 'I prefer to be called Alex and like technical, detailed explanations.'
+    }
+  ],
+});
+
+// The AI can now use tools to manage memory
+// For example, it might call:
+// tools.coreMemoryReplace({
+//   block: 'user_preferences',
+//   content: 'Name: Alex, Preference: Technical and detailed explanations'
+// })
+
+// Later in the conversation, AI can retrieve preferences
+const result2 = await generateText({
+  model: 'gpt-4',
+  tools,
+  messages: [
+    {
+      role: 'user',
+      content: 'Can you explain how databases work?'
+    }
+  ],
+});
+
+// AI can search archive memory for relevant information
+// tools.archivalMemorySearch({
+//   query: 'user Alex technical preferences'
+// })
+```
+
+The available tools include:
+- `coreMemoryReplace`: Update entire memory blocks
+- `coreMemoryAppend`: Add information to existing blocks
+- `archivalMemorySearch`: Search through archived information
+- `archivalMemoryInsert`: Add new information to archive
 
 ## License
 
