@@ -275,6 +275,42 @@ The available tools include:
 - `archivalMemorySearch`: Search through archived information
 - `archivalMemoryInsert`: Add new information to archive
 
+## Contributing
+
+### Commit Messages
+
+This project uses semantic versioning based on commit message prefixes. Your commit message should be structured as follows:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+Types that trigger version updates:
+- `feat`: New feature (minor version bump)
+- `fix`: Bug fix (patch version bump)
+- `perf`: Performance improvement (patch version bump)
+- `BREAKING CHANGE`: Breaking API change (major version bump)
+
+Examples:
+```bash
+# Patch release (0.0.x)
+git commit -m "fix: correct memory leak in chat history"
+git commit -m "perf: improve archive search performance"
+
+# Minor release (0.x.0)
+git commit -m "feat: add new core memory block type"
+
+# Major release (x.0.0)
+git commit -m "feat!: redesign storage provider API
+BREAKING CHANGE: storage provider interface has changed"
+```
+
+The version number will be automatically updated when merging to main branch.
+
 ## License
 
 MIT 

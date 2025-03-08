@@ -2,7 +2,7 @@
   "name": "@aksolab/recall",
   "version": "0.0.1",
   "type": "module",
-  "description": "A TypeScript package for AI SDK memory functionality",
+  "description": "A memory management package for AI SDK memory functionality",
   "author": "Rem Kim <rem4ik4ever@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -19,11 +19,24 @@
     "build": "tsc",
     "test": "jest",
     "prepublishOnly": "npm run build",
+    "release": "semantic-release",
     "chat": "ts-node playground/test-agent.ts",
     "redis-search": "ts-node playground/redis-search-pl.ts",
     "redis-seed": "ts-node playground/seed-animals.ts",
     "chroma-search": "ts-node playground/chromadb-search-pl.ts",
     "chroma-seed": "ts-node playground/seed-animals-chroma.ts"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ]
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -38,6 +51,12 @@
     "tiktoken": "^1.0.20"
   },
   "devDependencies": {
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "semantic-release": "^23.0.2",
     "redis": "^4.7.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
