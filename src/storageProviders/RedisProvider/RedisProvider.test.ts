@@ -29,7 +29,6 @@ describe('RedisProvider', () => {
   afterEach(async () => {
     await provider.flush();
     await provider.disconnect();
-    await redisClient.quit();
   });
 
   test('should initialize new memory state', async () => {
