@@ -20,6 +20,8 @@
     "test": "jest",
     "prepublishOnly": "npm run build",
     "release": "semantic-release",
+    "create-release": "chmod +x ./scripts/create-release.sh && ./scripts/create-release.sh",
+    "finish-release": "chmod +x ./scripts/finish-release.sh && ./scripts/finish-release.sh",
     "chat": "ts-node playground/test-agent.ts",
     "redis-search": "ts-node playground/redis-search-pl.ts",
     "redis-seed": "ts-node playground/seed-animals.ts",
