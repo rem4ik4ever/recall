@@ -18,6 +18,12 @@ if [ "$CURRENT_BRANCH" != "$BRANCH" ]; then
   exit 1
 fi
 
+# Check if user is logged in to npm
+if ! npm whoami >/dev/null 2>&1; then
+  echo "Error: You are not logged in to npm. Please run 'npm login' first."
+  exit 1
+fi
+
 # Run tests
 echo "Running tests..."
 npm test
@@ -46,6 +52,27 @@ if [ $? -eq 0 ]; then
   git checkout main
   git merge --no-ff "$BRANCH" -m "chore(release): merge release v$VERSION"
   
+  # Build the package
+  echo "Building package..."
+  npm run build
+  
+  if [ $? -ne 0 ]; then
+    echo "Error: Build failed"
+    exit 1
+  fi
+  
+  # Update package version
+  npm version "$VERSION" --no-git-tag-version
+  
+  # Publish to npm
+  echo "Publishing to npm..."
+  npm publish --access public
+  
+  if [ $? -ne 0 ]; then
+    echo "Error: npm publish failed"
+    exit 1
+  fi
+  
   # Push changes
   git push origin main
   git push origin "v$VERSION"
@@ -54,6 +81,8 @@ if [ $? -eq 0 ]; then
   git branch -d "$BRANCH"
   
   echo "Release v$VERSION completed successfully!"
+  echo "Package published to npm as @aksolab/recall@$VERSION"
+  echo ""
   echo "Changelog:"
   echo "$CHANGELOG"
   echo ""
