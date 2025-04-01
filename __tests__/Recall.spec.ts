@@ -11,7 +11,6 @@ describe('Recall', () => {
   beforeEach(async () => {
     // Mock storage provider
     storageProvider = {
-      initialize: jest.fn().mockResolvedValue(undefined),
       initializeMemoryState: jest.fn().mockResolvedValue({
         chatHistory: [],
         coreMemory: null
@@ -22,6 +21,7 @@ describe('Recall', () => {
       } as MemoryState),
       updateChatHistory: jest.fn(),
       addChatHistoryMessage: jest.fn(),
+      getChatHistory: jest.fn().mockResolvedValue([]),
       getCoreMemory: jest.fn().mockResolvedValue({
         user: { content: '', description: 'User information' },
         customBlock: { content: 'Default content', description: 'Custom block' }
@@ -40,21 +40,20 @@ describe('Recall', () => {
     // Mock archive provider with all required methods
     archiveProvider = {
       config: {},
-      initialize: jest.fn().mockResolvedValue(undefined),
       cleanup: jest.fn(),
       addEntry: jest.fn(),
+      addEntries: jest.fn(),
       searchByText: jest.fn(),
       searchBySimilarity: jest.fn(),
+      hybridSearch: jest.fn(),
       getEntry: jest.fn(),
       updateEntry: jest.fn(),
       deleteEntry: jest.fn(),
+      deleteEntriesByName: jest.fn(),
       listEntries: jest.fn(),
-      generateEmbeddings: jest.fn()
+      clear: jest.fn(),
+      count: jest.fn()
     } as unknown as jest.Mocked<ArchiveProvider>;
-
-    // Initialize providers
-    await storageProvider.initialize();
-    await archiveProvider.initialize();
 
     recall = new Recall({
       storageProvider,

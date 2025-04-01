@@ -12,11 +12,6 @@ export abstract class ArchiveProvider {
   }
 
   /**
-   * Initialize the provider, setting up any necessary connections or indexes
-   */
-  abstract initialize(): Promise<void>;
-
-  /**
    * Clean up provider resources
    */
   abstract cleanup(): Promise<void>;

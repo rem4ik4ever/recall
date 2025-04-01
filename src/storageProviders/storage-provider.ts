@@ -3,11 +3,6 @@ import { CoreBlock, CoreMemoryEntry, MemoryState } from "../types";
 
 export interface StorageProvider {
   /**
-   * Initialize the provider
-   */
-  initialize(): Promise<void>;
-
-  /**
    * Initialize memory state for a given memory key and thread
    */
   initializeMemoryState(memoryKey: string, threadId?: string, previousState?: MemoryState): Promise<MemoryState>;
