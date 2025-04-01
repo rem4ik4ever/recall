@@ -213,18 +213,6 @@ async function main() {
 
     const count = await provider.count();
     console.log(`\nReady to use. Current entries: ${count}`);
-
-    // List any existing keys
-    const keys = await client.keys(`${config.collectionName}*`);
-    if (keys.length > 0) {
-      console.log('Existing keys:', keys);
-      // Try to get one key to check its content
-      const key = keys[0];
-      if (typeof key === 'string') {
-        const content = await client.json.get(key);
-        console.log('Sample content:', JSON.stringify(content, null, 2));
-      }
-    }
   } catch (error) {
     console.error('Failed to initialize provider:', error);
     await client.disconnect();

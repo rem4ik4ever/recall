@@ -34,6 +34,10 @@ export async function setupRedisSchema(
 
     // Create index for archive entries
     await client.ft.create(indexName, {
+      '$.id': {
+        type: SchemaFieldTypes.TEXT,
+        AS: 'id'
+      },
       '$.name': {
         type: SchemaFieldTypes.TEXT,
         AS: 'name'
@@ -105,6 +109,8 @@ export class RedisArchiveProvider extends ArchiveProvider {
       // Check if index exists
       try {
         await this.client.ft.info(this.indexName);
+        // Ensure schema has ID field
+        await this.ensureSchemaHasIdField();
       } catch (e: any) {
         await setupRedisSchema(this.client, this.indexName, this.collectionName, this.config.dimensions);
         if (e.message.includes('Unknown Index')) {
@@ -160,6 +166,7 @@ export class RedisArchiveProvider extends ArchiveProvider {
     try {
       // Format the entry for Redis JSON storage
       const jsonEntry = {
+        id,  // Store the ID in the JSON document
         name: fullEntry.name,
         content: fullEntry.content,
         metadata: typeof fullEntry.metadata === 'string' ? fullEntry.metadata : JSON.stringify(fullEntry.metadata),
@@ -396,7 +403,7 @@ export class RedisArchiveProvider extends ArchiveProvider {
           LIMIT: { from: offset, size: limit },
           SORTBY: 'timestamp',
           DESC: true,
-          RETURN: ['name', 'content', 'metadata', 'timestamp', 'embeddings'],
+          RETURN: ['id', 'name', 'content', 'metadata', 'timestamp', 'embeddings'],  // Include id in returned fields
           DIALECT: 2
         } as RedisSearchOptions
       );
@@ -407,9 +414,11 @@ export class RedisArchiveProvider extends ArchiveProvider {
 
       return results.documents.map(doc => {
         const value = doc.value as unknown as ArchiveEntry;
+        // Use the stored ID if available, otherwise extract from key
+        const id = value.id || doc.id.replace(this.collectionName, '');
         return {
           ...value,
-          id: doc.id.replace(this.collectionName, '')
+          id
         };
       });
     } catch (error) {
@@ -434,5 +443,21 @@ export class RedisArchiveProvider extends ArchiveProvider {
   async count(): Promise<number> {
     const info = await this.client.ft.info(this.indexName);
     return Number(info.numDocs);
+  }
+
+  // Update the schema setup to include the ID field
+  private async ensureSchemaHasIdField(): Promise<void> {
+    try {
+      const info = await this.client.ft.info(this.indexName);
+      const schema = info.attributes as Array<{ identifier: string }>;
+      const hasIdField = schema.some(attr => attr.identifier === '$.id');
+
+      if (!hasIdField) {
+        // Drop and recreate index with ID field
+        await setupRedisSchema(this.client, this.indexName, this.collectionName, this.config.dimensions);
+      }
+    } catch (error) {
+      console.error('Error checking schema:', error);
+    }
   }
 } 
