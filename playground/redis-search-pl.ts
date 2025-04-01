@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import { createClient, RedisClientType } from 'redis';
 import readline from 'readline';
 import { ArchiveEntry } from "../src/types";
-import { SearchResult } from "../src/archiveProviders";
+import { SearchResult } from "../src/archiveProviders/types";
 
 // Load environment variables
 config();
@@ -43,14 +43,11 @@ async function addEntry() {
 
   try {
     const stored = await provider.addEntry(entry as any);
-    console.log('Entry added successfully!');
-    console.log('Stored entry:', stored);
-
-    // Show current index info
+    console.log('\nEntry added successfully!');
     const count = await provider.count();
-    console.log('\nCurrent number of entries:', count);
+    console.log(`Total entries: ${count}`);
   } catch (error) {
-    console.error('Error adding entry:', error);
+    console.error('Failed to add entry:', error);
     throw error;
   }
 }
@@ -131,29 +128,24 @@ async function deleteEntry() {
 async function listAllEntries() {
   try {
     const entries = await provider.listEntries() as ArchiveEntry[];
+    const count = await provider.count();
+    console.log(`\nTotal entries: ${count}`);
 
     if (entries.length === 0) {
       console.log('No entries found');
       return;
     }
 
-    console.log('\nAll Entries:', entries.length, 'entries found');
-
     entries.forEach((entry, i) => {
       console.log(`\n--- Entry ${i + 1} ---`);
       console.log('ID:', entry.id);
       console.log('Name:', entry.name);
       console.log('Content:', entry.content);
-      console.log('Metadata:', entry.metadata);
-      console.log('Timestamp:', new Date(entry.timestamp).toLocaleString());
+      if (entry.metadata) console.log('Metadata:', entry.metadata);
+      console.log('Added:', new Date(entry.timestamp).toLocaleString());
     });
-
-    // Show index info
-    const count = await provider.count();
-    console.log('\nTotal entries:', count);
-
   } catch (error) {
-    console.error('Error listing entries:', error);
+    console.error('Failed to list entries:', error);
   }
 }
 
@@ -198,25 +190,41 @@ async function hybridSearch() {
 
 async function main() {
   await client.connect();
+  console.log('Connected to Redis');
 
-  // Set up Redis schema and initialize provider
-  const collectionName = 'recall-test-1'
   const config: RedisArchiveProviderConfig = {
     client,
     indexName: 'idx:archive',
-    collectionName: collectionName,
-    embeddingModel: 'text-embedding-3-small'
+    collectionName: 'recall:memory:archive:',
+    embeddingModel: 'text-embedding-3-small',
+    dimensions: 1536
   };
 
   try {
     await setupRedisSchema(
       client,
       config.indexName,
-      config.collectionName
+      config.collectionName,
+      config.dimensions
     );
 
     provider = new RedisArchiveProvider(config);
     await provider.initialize();
+
+    const count = await provider.count();
+    console.log(`\nReady to use. Current entries: ${count}`);
+
+    // List any existing keys
+    const keys = await client.keys(`${config.collectionName}*`);
+    if (keys.length > 0) {
+      console.log('Existing keys:', keys);
+      // Try to get one key to check its content
+      const key = keys[0];
+      if (typeof key === 'string') {
+        const content = await client.json.get(key);
+        console.log('Sample content:', JSON.stringify(content, null, 2));
+      }
+    }
   } catch (error) {
     console.error('Failed to initialize provider:', error);
     await client.disconnect();

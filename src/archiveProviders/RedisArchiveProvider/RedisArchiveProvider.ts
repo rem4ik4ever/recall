@@ -25,6 +25,7 @@ export async function setupRedisSchema(
     // Drop existing index if it exists
     try {
       await client.ft.dropIndex(indexName);
+      console.log('Dropped existing index');
     } catch (e: any) {
       if (!e.message.includes('Unknown Index')) {
         throw e;
@@ -62,6 +63,10 @@ export async function setupRedisSchema(
       ON: 'JSON',
       PREFIX: collectionName
     });
+
+    // Verify the index was created
+    await client.ft.info(indexName);
+    console.log('Search index created successfully');
   } catch (error) {
     console.error('Error setting up Redis schema:', error);
     throw error;
@@ -147,13 +152,39 @@ export class RedisArchiveProvider extends ArchiveProvider {
       ...entry,
       id,
       embeddings,
-      timestamp
+      timestamp,
+      metadata: entry.metadata || ''  // Ensure metadata is a string
     };
 
     const key = this.getKey(id);
-    await this.client.json.set(key, '$', fullEntry as any);
+    try {
+      // Format the entry for Redis JSON storage
+      const jsonEntry = {
+        name: fullEntry.name,
+        content: fullEntry.content,
+        metadata: typeof fullEntry.metadata === 'string' ? fullEntry.metadata : JSON.stringify(fullEntry.metadata),
+        timestamp: fullEntry.timestamp,
+        embeddings: fullEntry.embeddings || []  // Ensure embeddings is an array
+      };
 
-    return fullEntry;
+      await this.client.json.set(key, '$', jsonEntry as any);
+
+      // Verify the entry was indexed
+      const info = await this.client.ft.info(this.indexName);
+      if (Number(info.numDocs) === 0) {
+        throw new Error('Entry was not properly indexed');
+      }
+
+      return fullEntry;
+    } catch (error) {
+      // Clean up the key if it was created but not properly indexed
+      try {
+        await this.client.del(key);
+      } catch (cleanupError) {
+        console.error('Failed to clean up key after error:', key);
+      }
+      throw error;
+    }
   }
 
   async addEntries(entries: ArchiveEntry[]): Promise<ArchiveEntry[]> {
@@ -357,23 +388,34 @@ export class RedisArchiveProvider extends ArchiveProvider {
   async listEntries(options: SearchOptions = {}): Promise<ArchiveEntry[]> {
     const { limit = 100, offset = 0 } = options;
 
-    const results = await this.client.ft.search(
-      this.indexName,
-      '*',
-      {
-        LIMIT: { from: offset, size: limit },
-        SORTBY: 'timestamp',
-        DESC: true,
-      } as RedisSearchOptions
-    );
+    try {
+      const results = await this.client.ft.search(
+        this.indexName,
+        '*',
+        {
+          LIMIT: { from: offset, size: limit },
+          SORTBY: 'timestamp',
+          DESC: true,
+          RETURN: ['name', 'content', 'metadata', 'timestamp', 'embeddings'],
+          DIALECT: 2
+        } as RedisSearchOptions
+      );
 
-    return results.documents.map(doc => {
-      const value = doc.value as unknown as { name: string; content: string; metadata?: string; timestamp: number; embeddings?: number[] };
-      return {
-        ...value,
-        id: doc.id.replace(this.collectionName, '')
-      };
-    });
+      if (!results.documents || results.documents.length === 0) {
+        return [];
+      }
+
+      return results.documents.map(doc => {
+        const value = doc.value as unknown as ArchiveEntry;
+        return {
+          ...value,
+          id: doc.id.replace(this.collectionName, '')
+        };
+      });
+    } catch (error) {
+      console.error('Error listing entries:', error);
+      throw error;
+    }
   }
 
   async getEntry(id: string): Promise<ArchiveEntry | null> {

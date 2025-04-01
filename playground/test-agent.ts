@@ -127,6 +127,8 @@ export const chatTest = async () => {
     storageProvider: storage,
     archiveProvider: archiveProvider,
     openaiApiKey: process.env.OPENAI_API_KEY,
+    memoryKey: 'user-rem-2',
+    threadId: 'thread-15',
     coreBlocks: [
       {
         key: 'user',
@@ -141,21 +143,13 @@ export const chatTest = async () => {
     ]
   });
 
-  const threadId = 'thread-15';
-  const memoryKey = 'user-rem-2';
-  const session = await recall.createChatSession(memoryKey, threadId);
-  const {
-    addUserMessage,
-    addAIMessages,
-  } = session;
-
   console.log("\nChat session started. Type 'exit' to end the session.");
 
   while (true) {
     const userInput = await question("\nYou: ");
 
     if (userInput.toLowerCase() === 'export') {
-      const memoryState = await storage.export(memoryKey, threadId);
+      const memoryState = await storage.export('user-rem-2', 'thread-15');
       console.log(JSON.stringify(memoryState, null, 2));
       continue;
     }
@@ -165,17 +159,13 @@ export const chatTest = async () => {
     }
 
     // Add user message
-    await addUserMessage({ role: 'user', content: userInput });
+    await recall.addUserMessage({ role: 'user', content: userInput });
 
     // Get AI response using the full chat history and memory tools
-    const responseMessages = await getAIResponse(session);
+    const responseMessages = await getAIResponse(recall);
 
     // Add AI response to chat history
-    //await addAIMessage({ role: 'assistant', content: aiResponse });
-    await addAIMessages(responseMessages);
-
-    // Show updated chat history
-    //console.log("\nChat history:", chatHistory);
+    await recall.addAIMessages(responseMessages);
   }
 
   rl.close();
