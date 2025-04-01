@@ -32,7 +32,16 @@ function toArchiveEntry(entry: ProviderArchiveEntry): ArchiveEntry {
 class MockStorageProvider implements StorageProvider {
   private memoryState: Record<string, MemoryState> = {};
 
-  async getMemoryState(memoryKey: string): Promise<MemoryState | undefined> {
+  async initialize(): Promise<void> {
+    // Nothing to initialize for mock provider
+  }
+
+  async getChatHistory(memoryKey: string, threadId: string = 'default'): Promise<CoreMessage[]> {
+    const state = await this.getMemoryState(memoryKey, threadId);
+    return state?.chatHistory || [];
+  }
+
+  async getMemoryState(memoryKey: string, threadId: string = 'default'): Promise<MemoryState | undefined> {
     return this.memoryState[memoryKey];
   }
 
@@ -247,7 +256,7 @@ describe('MemoryManager', () => {
     it('should add user message', async () => {
       await memoryManager.initialize();
       const message: CoreMessage = { role: 'user', content: 'test message' };
-      await memoryManager.addUserMessage(message);
+      await memoryManager.addMessages(message);
       const chatHistory = await memoryManager.getChatHistory();
       expect(chatHistory).toHaveLength(2); // System message + user message
       expect(chatHistory[1]).toEqual(message);
@@ -256,7 +265,7 @@ describe('MemoryManager', () => {
     it('should add AI message', async () => {
       await memoryManager.initialize();
       const message: CoreMessage = { role: 'assistant', content: 'test response' };
-      await memoryManager.addAIMessage(message);
+      await memoryManager.addMessages(message);
       const chatHistory = await memoryManager.getChatHistory();
       expect(chatHistory).toHaveLength(2); // System message + AI message
       expect(chatHistory[1]).toEqual(message);
@@ -315,6 +324,58 @@ describe('MemoryManager', () => {
       await memoryManager.initialize();
       memoryManager.maxContextSize = 15000;
       expect(memoryManager.maxContextSize).toBe(15000);
+    });
+  });
+
+  describe('message operations', () => {
+    beforeEach(async () => {
+      await memoryManager.initialize();
+    });
+
+    it('should add a single message', async () => {
+      const message: CoreMessage = { role: 'user', content: 'test message' };
+      await memoryManager.addMessages(message);
+      const chatHistory = await memoryManager.getChatHistory();
+      const userMessages = chatHistory.filter(msg => msg.role === 'user');
+      expect(userMessages).toHaveLength(1);
+      expect(userMessages[0]?.content).toBe('test message');
+    });
+
+    it('should add multiple messages', async () => {
+      const messages: CoreMessage[] = [
+        { role: 'user', content: 'user message' },
+        { role: 'assistant', content: 'assistant message' }
+      ];
+      await memoryManager.addMessages(messages);
+      const chatHistory = await memoryManager.getChatHistory();
+      const nonSystemMessages = chatHistory.filter(msg => msg.role !== 'system');
+      expect(nonSystemMessages).toHaveLength(2);
+      expect(nonSystemMessages[0]?.content).toBe('user message');
+      expect(nonSystemMessages[1]?.content).toBe('assistant message');
+    });
+
+    it('should maintain message order', async () => {
+      const messages: CoreMessage[] = [
+        { role: 'user', content: 'first message' },
+        { role: 'assistant', content: 'second message' },
+        { role: 'user', content: 'third message' }
+      ];
+      await memoryManager.addMessages(messages);
+      const chatHistory = await memoryManager.getChatHistory();
+      const nonSystemMessages = chatHistory.filter(msg => msg.role !== 'system');
+      expect(nonSystemMessages).toHaveLength(3);
+      expect(nonSystemMessages.map(msg => msg.content)).toEqual([
+        'first message',
+        'second message',
+        'third message'
+      ]);
+    });
+
+    it('should handle empty message array', async () => {
+      await memoryManager.addMessages([]);
+      const chatHistory = await memoryManager.getChatHistory();
+      const nonSystemMessages = chatHistory.filter(msg => msg.role !== 'system');
+      expect(nonSystemMessages).toHaveLength(0);
     });
   });
 }); 

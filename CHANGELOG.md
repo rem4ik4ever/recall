@@ -44,6 +44,21 @@
   - IDs are now properly stored and retrieved in search results
   - Improved ID handling in `addEntry`, `listEntries`, and search functions
 
+- **Message Handling API**: Unified message handling methods into a single `addMessages` method.
+  ```typescript
+  // Before
+  await recall.addUserMessage(message);
+  await recall.addAIMessage(message);
+  await recall.addAIMessages(messages);
+
+  // After
+  await recall.addMessages(message);        // Single message
+  await recall.addMessages([message1, message2]); // Multiple messages
+  ```
+  - Old methods are marked as deprecated but remain functional for backward compatibility
+  - Improved type safety and reduced code duplication
+  - More flexible API that handles both single and multiple messages
+
 ### Improvements
 - Better error handling in Redis operations
 - More robust index verification
@@ -55,5 +70,8 @@
 2. Initialize Redis client and providers separately before creating the Recall instance
 3. No manual migration needed for the index schema change - it will be handled automatically
 4. If you were relying on the old ID format (extracted from Redis key), the behavior remains backward compatible
+5. Consider migrating to the new unified `addMessages` method for message handling
+   - Replace `addUserMessage`, `addAIMessage`, and `addAIMessages` with `addMessages`
+   - The old methods will continue to work but are deprecated
 
 ## [0.1.4] - Previous version 

@@ -8,9 +8,10 @@ describe('Recall', () => {
   let archiveProvider: jest.Mocked<ArchiveProvider>;
   let recall: Recall;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Mock storage provider
     storageProvider = {
+      initialize: jest.fn().mockResolvedValue(undefined),
       initializeMemoryState: jest.fn().mockResolvedValue({
         chatHistory: [],
         coreMemory: null
@@ -39,7 +40,7 @@ describe('Recall', () => {
     // Mock archive provider with all required methods
     archiveProvider = {
       config: {},
-      initialize: jest.fn(),
+      initialize: jest.fn().mockResolvedValue(undefined),
       cleanup: jest.fn(),
       addEntry: jest.fn(),
       searchByText: jest.fn(),
@@ -50,6 +51,10 @@ describe('Recall', () => {
       listEntries: jest.fn(),
       generateEmbeddings: jest.fn()
     } as unknown as jest.Mocked<ArchiveProvider>;
+
+    // Initialize providers
+    await storageProvider.initialize();
+    await archiveProvider.initialize();
 
     recall = new Recall({
       storageProvider,
@@ -120,56 +125,80 @@ describe('Recall', () => {
       // Filter out system messages
       const userMessages = history.filter(msg => msg.role !== 'system');
       expect(userMessages).toHaveLength(1);
-      expect(userMessages.length).toBeGreaterThan(0);
       expect(userMessages[0]?.content).toBe('Previous message');
     });
   });
 
   describe('chat history management', () => {
-    it('should add and retrieve user messages', async () => {
+    it('should add and retrieve a single message', async () => {
       const message: CoreMessage = {
         content: 'Hello',
         role: 'user'
       } as CoreMessage;
 
-      await recall.addUserMessage(message);
+      await recall.addMessages(message);
       const history = await recall.chatHistory();
       // Filter out system messages
       const userMessages = history.filter(msg => msg.role !== 'system');
       expect(userMessages).toHaveLength(1);
-      expect(userMessages.length).toBeGreaterThan(0);
       expect(userMessages[0]?.content).toBe('Hello');
     });
 
-    it('should add and retrieve AI messages', async () => {
-      const message: CoreMessage = {
-        content: 'Hi there!',
-        role: 'assistant'
-      } as CoreMessage;
-
-      await recall.addAIMessage(message);
-      const history = await recall.chatHistory();
-      // Filter out system messages
-      const aiMessages = history.filter(msg => msg.role === 'assistant');
-      expect(aiMessages).toHaveLength(1);
-      expect(aiMessages.length).toBeGreaterThan(0);
-      expect(aiMessages[0]?.content).toBe('Hi there!');
-    });
-
-    it('should add multiple AI messages', async () => {
+    it('should add and retrieve multiple messages', async () => {
       const messages: CoreMessage[] = [
         { content: 'First message', role: 'assistant' } as CoreMessage,
-        { content: 'Second message', role: 'assistant' } as CoreMessage
+        { content: 'Second message', role: 'user' } as CoreMessage
       ];
 
-      await recall.addAIMessages(messages);
+      await recall.addMessages(messages);
       const history = await recall.chatHistory();
       // Filter out system messages
-      const aiMessages = history.filter(msg => msg.role === 'assistant');
-      expect(aiMessages).toHaveLength(2);
-      expect(aiMessages.length).toBeGreaterThan(1);
-      expect(aiMessages[0]?.content).toBe('First message');
-      expect(aiMessages[1]?.content).toBe('Second message');
+      const chatMessages = history.filter(msg => msg.role !== 'system');
+      expect(chatMessages).toHaveLength(2);
+      expect(chatMessages[0]?.content).toBe('First message');
+      expect(chatMessages[1]?.content).toBe('Second message');
+    });
+
+    describe('deprecated methods', () => {
+      it('should support legacy addUserMessage for backward compatibility', async () => {
+        const message: CoreMessage = {
+          content: 'Hello',
+          role: 'user'
+        } as CoreMessage;
+
+        await recall.addUserMessage(message);
+        const history = await recall.chatHistory();
+        const userMessages = history.filter(msg => msg.role === 'user');
+        expect(userMessages).toHaveLength(1);
+        expect(userMessages[0]?.content).toBe('Hello');
+      });
+
+      it('should support legacy addAIMessage for backward compatibility', async () => {
+        const message: CoreMessage = {
+          content: 'Hi there!',
+          role: 'assistant'
+        } as CoreMessage;
+
+        await recall.addAIMessage(message);
+        const history = await recall.chatHistory();
+        const aiMessages = history.filter(msg => msg.role === 'assistant');
+        expect(aiMessages).toHaveLength(1);
+        expect(aiMessages[0]?.content).toBe('Hi there!');
+      });
+
+      it('should support legacy addAIMessages for backward compatibility', async () => {
+        const messages: CoreMessage[] = [
+          { content: 'First message', role: 'assistant' } as CoreMessage,
+          { content: 'Second message', role: 'assistant' } as CoreMessage
+        ];
+
+        await recall.addAIMessages(messages);
+        const history = await recall.chatHistory();
+        const aiMessages = history.filter(msg => msg.role === 'assistant');
+        expect(aiMessages).toHaveLength(2);
+        expect(aiMessages[0]?.content).toBe('First message');
+        expect(aiMessages[1]?.content).toBe('Second message');
+      });
     });
   });
 

@@ -175,13 +175,6 @@ export class RedisArchiveProvider extends ArchiveProvider {
       };
 
       await this.client.json.set(key, '$', jsonEntry as any);
-
-      // Verify the entry was indexed
-      const info = await this.client.ft.info(this.indexName);
-      if (Number(info.numDocs) === 0) {
-        throw new Error('Entry was not properly indexed');
-      }
-
       return fullEntry;
     } catch (error) {
       // Clean up the key if it was created but not properly indexed

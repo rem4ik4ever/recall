@@ -68,7 +68,15 @@ const memory = new Recall({
 
 // Create a chat session
 const session = await memory.createChatSession('user_123', 'main');
-await session.addUserMessage({ content: 'Hello!' });
+
+// Add messages
+await session.addMessages({ content: 'Hello!', role: 'user' });
+
+// Add multiple messages at once
+await session.addMessages([
+  { content: 'Hi there!', role: 'assistant' },
+  { content: 'How can I help?', role: 'assistant' }
+]);
 ```
 
 ## Core Memory
@@ -151,13 +159,15 @@ Chat History maintains the ongoing conversation between users and AI Agents, inc
 const mainThread = await memory.createChatSession('user_123', 'main');
 const analyticsThread = await memory.createChatSession('user_123', 'analytics');
 
-// Add messages with tool usage
-await mainThread.addUserMessage({
-  content: 'Analyze this dataset'
+// Add messages
+await mainThread.addMessages({
+  content: 'Analyze this dataset',
+  role: 'user'
 });
 
-await mainThread.addAIMessage({
+await mainThread.addMessages({
   content: 'I\'ll analyze the data',
+  role: 'assistant',
   tool_calls: [{
     type: 'function',
     function: {
@@ -166,6 +176,12 @@ await mainThread.addAIMessage({
     }
   }]
 });
+
+// Add multiple messages at once
+await mainThread.addMessages([
+  { content: 'Here are the results', role: 'assistant' },
+  { content: 'Thanks!', role: 'user' }
+]);
 
 // Get history
 const history = await mainThread.getChatHistory();

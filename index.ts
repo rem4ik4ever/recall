@@ -74,16 +74,47 @@ export class Recall implements ChatSession {
     return this.memoryManager.getChatHistory();
   }
 
+  async addMessages(messages: CoreMessage | CoreMessage[]): Promise<void> {
+    return this.memoryManager.addMessages(messages);
+  }
+
+  /**
+   * @deprecated Use {@link addMessages} instead. This method will be removed in the next major version.
+   * @example
+   * // Instead of:
+   * await recall.addUserMessage(message);
+   * 
+   * // Use:
+   * await recall.addMessages(message);
+   */
   async addUserMessage(message: CoreMessage): Promise<void> {
-    return this.memoryManager.addUserMessage(message);
+    return this.addMessages(message);
   }
 
+  /**
+   * @deprecated Use {@link addMessages} instead. This method will be removed in the next major version.
+   * @example
+   * // Instead of:
+   * await recall.addAIMessage(message);
+   * 
+   * // Use:
+   * await recall.addMessages(message);
+   */
   async addAIMessage(message: CoreMessage): Promise<void> {
-    return this.memoryManager.addAIMessage(message);
+    return this.addMessages(message);
   }
 
+  /**
+   * @deprecated Use {@link addMessages} instead. This method will be removed in the next major version.
+   * @example
+   * // Instead of:
+   * await recall.addAIMessages(messages);
+   * 
+   * // Use:
+   * await recall.addMessages(messages);
+   */
   async addAIMessages(messages: CoreMessage[]): Promise<void> {
-    return this.memoryManager.addAIMessages(messages);
+    return this.addMessages(messages);
   }
 
   async getCoreBlocks() {
