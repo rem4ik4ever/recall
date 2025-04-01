@@ -9,6 +9,10 @@ export class InMemoryProvider implements StorageProvider {
   private coreMemoryStorage: Map<string, Record<string, CoreMemoryEntry> | null> = new Map();
   private archiveMemoryStorage: Map<string, ArchiveEntry[]> = new Map();
 
+  async initialize(): Promise<void> {
+    // Nothing to initialize for in-memory provider
+  }
+
   async flush(): Promise<void> {
     this.storage.clear();
     this.chatHistoryStorage.clear();
@@ -131,5 +135,10 @@ export class InMemoryProvider implements StorageProvider {
   // Get archive memory key
   getArchiveMemoryKey(memoryKey: string): string {
     return `${memoryKey}::archive-memory`;
+  }
+
+  async getChatHistory(memoryKey: string, threadId: string = 'default'): Promise<CoreMessage[]> {
+    const key = this.getChatHistoryKey(memoryKey, threadId);
+    return this.chatHistoryStorage.get(key) || [];
   }
 }

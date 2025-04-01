@@ -17,6 +17,15 @@ export class RedisProvider implements StorageProvider {
     this.prefix = config.prefix || 'recall:memory:';
   }
 
+  async initialize(): Promise<void> {
+    // Verify Redis connection
+    try {
+      await this.redis.ping();
+    } catch (error) {
+      throw new Error('Failed to connect to Redis: ' + error);
+    }
+  }
+
   private getKey(memoryKey: string): string {
     return `${this.prefix}${memoryKey}`;
   }
@@ -83,8 +92,8 @@ export class RedisProvider implements StorageProvider {
   }
 
   async getChatHistory(memoryKey: string, threadId: string = 'default'): Promise<CoreMessage[]> {
-    const chatHistory = await this.redis.get(this.getChatHistoryKey(memoryKey, threadId));
-    return chatHistory ? JSON.parse(chatHistory) : [];
+    const state = await this.getMemoryState(memoryKey, threadId);
+    return state?.chatHistory || [];
   }
 
   async getCoreMemory(memoryKey: string): Promise<Record<CoreBlock, CoreMemoryEntry> | null> {
