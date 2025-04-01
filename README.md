@@ -25,21 +25,31 @@ pnpm add @rkim/recall
 import { Recall, RedisProvider, RedisArchiveProvider } from '@rkim/recall';
 import { createClient } from 'redis';
 
-// Initialize providers
+// Initialize Redis client
 const redisClient = createClient({ url: process.env.REDIS_URL });
 await redisClient.connect();
 
+// Initialize storage provider
+const storage = new RedisProvider({
+  client: redisClient,
+  prefix: 'user_123'  // Optional: prefix for Redis keys
+});
+
+// Initialize archive provider for RAG capabilities
+const archive = new RedisArchiveProvider({
+  client: redisClient,
+  indexName: 'idx:user_memory',  // Optional: defaults to 'idx:archive'
+  collectionName: 'user_123:archive:',  // Optional: defaults to 'recall:memory:archive:'
+  dimensions: 1536  // Optional: for text-embedding-3-small
+});
+
+// Initialize Recall with configured providers
 const memory = new Recall({
-  storageProvider: new RedisProvider({
-    client: redisClient,
-    prefix: 'user_123'
-  }),
-  archiveProvider: new RedisArchiveProvider({
-    client: redisClient,
-    indexName: 'idx:user_memory',
-    collectionName: 'user_123'
-  }),
+  storageProvider: storage,  // Required: for chat history and core memory
+  archiveProvider: archive,  // Optional: for RAG capabilities
   openaiApiKey: process.env.OPENAI_API_KEY,
+  memoryKey: 'user_123',  // Unique identifier for this user's memory
+  threadId: 'main',  // Conversation thread identifier
   coreBlocks: [
     {
       key: 'user_context',
@@ -188,19 +198,63 @@ Recall supports multiple storage providers for different use cases.
 
 ### Redis Requirements
 
-To use the `RedisArchiveProvider`, you need:
+To use Redis providers, you need:
 - Redis Stack with RediSearch module installed
 - Redis version 6.0 or higher
+- Node Redis client v4.7.0 or higher
 
 For development:
 ```bash
-docker run -d --name redis-stack -p 6379:6379
-```
-
-For production:
-```bash
 docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
 ```
+
+For production, ensure your Redis instance has the RediSearch module installed. Then initialize the providers:
+
+```typescript
+import { Recall, RedisProvider, RedisArchiveProvider } from '@rkim/recall';
+import { createClient } from 'redis';
+
+// Initialize Redis client
+const client = createClient({
+  url: process.env.REDIS_URL,
+  // Add any additional configuration options
+});
+await client.connect();
+
+// Initialize storage provider for chat history and core memory
+const storage = new RedisProvider({
+  client,
+  prefix: 'user:memory:'  // Optional: prefix for Redis keys
+});
+
+// Initialize archive provider for RAG capabilities
+const archive = new RedisArchiveProvider({
+  client,
+  indexName: 'idx:archive',      // Optional: defaults to 'idx:archive'
+  collectionName: 'user:archive:', // Optional: defaults to 'recall:memory:archive:'
+  dimensions: 1536,              // Optional: for text-embedding-3-small
+  embeddingModel: 'text-embedding-3-small'  // Optional: defaults to text-embedding-3-small
+});
+
+// Initialize Recall with configured providers
+const recall = new Recall({
+  storageProvider: storage,
+  archiveProvider: archive,
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  memoryKey: 'user_123',
+  threadId: 'main'
+});
+
+// Initialize providers (creates search index if needed)
+await storage.initialize();
+await archive.initialize();
+```
+
+The providers will automatically:
+- Create necessary indexes if they don't exist
+- Handle vector embeddings for semantic search
+- Manage JSON storage and retrieval
+- Provide text, semantic, and hybrid search capabilities
 
 ### Custom Providers
 
