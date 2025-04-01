@@ -19,7 +19,7 @@ export async function setupRedisSchema(
   client: RedisClientType,
   indexName: string = 'idx:archive',
   collectionName: string = 'recall:memory:archive:',
-  dimensions: number = 1536
+  dimensions: number = 1536,
 ): Promise<void> {
   try {
     // Drop existing index if it exists
@@ -87,13 +87,6 @@ export class RedisArchiveProvider extends ArchiveProvider {
     this.client = config.client;
     this.indexName = config.indexName || 'idx:archive';
     this.collectionName = config.collectionName || 'recall:memory:archive:';
-
-    // Set up Redis schema in constructor
-    setupRedisSchema(this.client, this.indexName, this.collectionName, this.config.dimensions)
-      .catch(error => {
-        console.error('Error setting up Redis schema:', error);
-        throw error;
-      });
   }
 
   async cleanup(): Promise<void> {
@@ -400,21 +393,5 @@ export class RedisArchiveProvider extends ArchiveProvider {
   async count(): Promise<number> {
     const info = await this.client.ft.info(this.indexName);
     return Number(info.numDocs);
-  }
-
-  // Update the schema setup to include the ID field
-  private async ensureSchemaHasIdField(): Promise<void> {
-    try {
-      const info = await this.client.ft.info(this.indexName);
-      const schema = info.attributes as Array<{ identifier: string }>;
-      const hasIdField = schema.some(attr => attr.identifier === '$.id');
-
-      if (!hasIdField) {
-        // Drop and recreate index with ID field
-        await setupRedisSchema(this.client, this.indexName, this.collectionName, this.config.dimensions);
-      }
-    } catch (error) {
-      console.error('Error checking schema:', error);
-    }
   }
 } 

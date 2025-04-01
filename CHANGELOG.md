@@ -1,5 +1,46 @@
 # Changelog
 
+## [2.0.0] - 2024-04-02
+
+### Breaking Changes
+- **Provider Initialization**: Removed `initialize()` method from providers
+  - Storage and Archive providers no longer require explicit initialization
+  - Initialization is now handled automatically in the constructor
+  - This is a breaking change as code calling `initialize()` will need to be updated
+
+### Improvements
+- **Provider Initialization**: Simplified provider initialization process
+  - Redis schema setup is now optional but recommended
+  - Added schema validation in RedisArchiveProvider constructor
+  - Added warning messages for missing schema
+  - Schema setup is now safe to run multiple times
+
+- **Redis Schema Setup**: Simplified Redis schema management
+  ```typescript
+  // Before
+  await setupRedisSchema(client, 'idx:archive', 'prefix:', 1536, false); // With validation
+  
+  // After
+  await setupRedisSchema(client, 'idx:archive', 'prefix:', 1536); // Always recreates
+  ```
+  - Removed schema validation to avoid race conditions
+  - Removed `force` parameter - schema is always recreated
+  - Schema setup now always drops and recreates the index
+  - Removed automatic schema checks from provider constructor
+  - Removed `ensureSchemaHasIdField` method
+
+### Documentation
+- Updated README with clearer Redis setup instructions
+- Added detailed provider initialization examples
+- Improved search capabilities documentation
+- Added schema setup best practices
+
+### Migration Guide
+1. Remove all calls to `initialize()` on storage and archive providers
+2. If using Redis, ensure `setupRedisSchema` is called before using the provider
+3. Update any code that relied on schema validation parameters
+4. Review and update any code that assumed indexes would persist between schema setups
+
 ## [1.0.0] - 2024-04-01
 
 ### Breaking Changes

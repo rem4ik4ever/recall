@@ -4,7 +4,7 @@ import readline from 'readline';
 import { config } from 'dotenv';
 import { openai } from '@ai-sdk/openai';
 import { CoreAssistantMessage, Tool, CoreToolMessage, streamText, tool } from 'ai';
-import { RedisArchiveProvider } from "../src/archiveProviders/RedisArchiveProvider/RedisArchiveProvider";
+import { RedisArchiveProvider, setupRedisSchema } from "../src/archiveProviders/RedisArchiveProvider/RedisArchiveProvider";
 import { createClient, RedisClientType } from "redis";
 import { CoreMessage } from 'ai'
 
@@ -110,65 +110,75 @@ export const chatTest = async () => {
     process.exit(1);
   }
 
-  const collectionName = 'recall-test-1'
-  const storage = new RedisProvider({
-    client: redisSearchClient as RedisClientType,
-    prefix: collectionName
-  });
+  try {
+    // Connect to Redis before creating providers
+    await redisSearchClient.connect();
+    console.log("Connected to Redis successfully");
 
-  const archiveProvider = new RedisArchiveProvider({
-    client: redisSearchClient as RedisClientType,
-    indexName: 'idx:archive',
-    collectionName: collectionName,
-  })
+    const collectionName = 'recall-test-1'
 
-  await redisSearchClient.connect();
-  const recall = new Recall({
-    storageProvider: storage,
-    archiveProvider: archiveProvider,
-    openaiApiKey: process.env.OPENAI_API_KEY,
-    memoryKey: 'user-rem-2',
-    threadId: 'thread-15',
-    coreBlocks: [
-      {
-        key: 'user',
-        description: 'Useful information about the user',
-        defaultContent: 'not available'
-      },
-      {
-        key: 'ai',
-        description: 'You (AI Assistant) personality, behavior, and other information about you',
-        defaultContent: 'You are a helpful assistant that can answer questions and help with tasks.'
+    const storage = new RedisProvider({
+      client: redisSearchClient as RedisClientType,
+      prefix: collectionName
+    });
+
+    const archiveProvider = new RedisArchiveProvider({
+      client: redisSearchClient as RedisClientType,
+      indexName: 'idx:archive',
+      collectionName: `${collectionName}:`,
+    });
+
+    const recall = new Recall({
+      storageProvider: storage,
+      archiveProvider: archiveProvider,
+      openaiApiKey: process.env.OPENAI_API_KEY,
+      memoryKey: 'user-rem-2',
+      threadId: 'thread-15',
+      coreBlocks: [
+        {
+          key: 'user',
+          description: 'Useful information about the user',
+          defaultContent: 'not available'
+        },
+        {
+          key: 'ai',
+          description: 'You (AI Assistant) personality, behavior, and other information about you',
+          defaultContent: 'You are a helpful assistant that can answer questions and help with tasks.'
+        }
+      ]
+    });
+
+    console.log("\nChat session started. Type 'exit' to end the session.");
+
+    while (true) {
+      const userInput = await question("\nYou: ");
+
+      if (userInput.toLowerCase() === 'export') {
+        const memoryState = await storage.export('user-rem-2', 'thread-15');
+        console.log(JSON.stringify(memoryState, null, 2));
+        continue;
       }
-    ]
-  });
 
-  console.log("\nChat session started. Type 'exit' to end the session.");
+      if (userInput.toLowerCase() === 'exit') {
+        break;
+      }
 
-  while (true) {
-    const userInput = await question("\nYou: ");
+      // Add user message
+      await recall.addUserMessage({ role: 'user', content: userInput });
 
-    if (userInput.toLowerCase() === 'export') {
-      const memoryState = await storage.export('user-rem-2', 'thread-15');
-      console.log(JSON.stringify(memoryState, null, 2));
-      continue;
+      // Get AI response using the full chat history and memory tools
+      const responseMessages = await getAIResponse(recall);
+
+      // Add AI response to chat history
+      await recall.addAIMessages(responseMessages);
     }
 
-    if (userInput.toLowerCase() === 'exit') {
-      break;
-    }
-
-    // Add user message
-    await recall.addUserMessage({ role: 'user', content: userInput });
-
-    // Get AI response using the full chat history and memory tools
-    const responseMessages = await getAIResponse(recall);
-
-    // Add AI response to chat history
-    await recall.addAIMessages(responseMessages);
+    rl.close();
+    await redisSearchClient.disconnect();
+  } catch (error) {
+    console.error("Error:", error);
+    process.exit(1);
   }
-
-  rl.close();
 };
 
 // Run the chat test if this file is executed directly

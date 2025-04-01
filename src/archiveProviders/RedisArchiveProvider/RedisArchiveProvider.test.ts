@@ -73,11 +73,26 @@ describe('RedisArchiveProvider', () => {
       expect(mockRedisClient.ft.create).toHaveBeenCalled();
       const createCall = mockRedisClient.ft.create.mock.calls[0];
       expect(createCall[0]).toBe('test:archive');
+      expect(mockRedisClient.ft.info).toHaveBeenCalledWith('test:archive');
     });
 
     it('should handle existing index during setup', async () => {
-      mockRedisClient.ft.dropIndex.mockRejectedValue(new Error('Unknown Index'));
+      // Mock that dropping index fails with Unknown Index
+      mockRedisClient.ft.dropIndex.mockRejectedValueOnce(new Error('Unknown Index'));
+
       await setupRedisSchema(mockRedisClient);
+      expect(mockRedisClient.ft.create).toHaveBeenCalled();
+      expect(mockRedisClient.ft.info).toHaveBeenCalled();
+    });
+
+    it('should handle errors during index creation', async () => {
+      mockRedisClient.ft.create.mockRejectedValueOnce(new Error('Creation failed'));
+      await expect(setupRedisSchema(mockRedisClient)).rejects.toThrow('Creation failed');
+    });
+
+    it('should verify index was created successfully', async () => {
+      await setupRedisSchema(mockRedisClient);
+      expect(mockRedisClient.ft.info).toHaveBeenCalled();
       expect(mockRedisClient.ft.create).toHaveBeenCalled();
     });
   });
@@ -211,7 +226,8 @@ describe('RedisArchiveProvider', () => {
     });
 
     it('should get entry count', async () => {
-      mockRedisClient.ft.info.mockResolvedValue({ numDocs: '42' });
+      const mockInfo = { numDocs: '42' };
+      mockRedisClient.ft.info.mockResolvedValueOnce(mockInfo);
       const count = await provider.count();
       expect(count).toBe(42);
     });

@@ -90,6 +90,7 @@ Core Memory is a persistent memory system that's always present in the system pr
 - Each block can be marked as read-only or updatable
 - AI agents can update their own memory during conversations
 - Persists across multiple chat sessions
+- Automatically initializes with default content
 
 ### Example Usage
 
@@ -190,18 +191,46 @@ const summarizedHistory = await mainThread.getSummarizedHistory();
 
 ## Archive Memory (RAG)
 
-Archive Memory provides RAG capabilities for long-term information storage and retrieval.
+Archive Memory provides RAG capabilities for long-term information storage and retrieval. It supports multiple search methods:
+- Text-based search with fuzzy matching
+- Semantic search using embeddings
+- Hybrid search combining both approaches
+
+### Example Usage
 
 ```typescript
 // Store information
 await memory.addToArchive('user_123', {
   content: 'User prefers vegetarian food',
-  metadata: { category: 'preferences' }
+  name: 'Dietary Preferences',  // Optional: name for the entry
+  metadata: { category: 'preferences' }  // Optional: additional metadata
 });
 
-// Search archive
-const results = await memory.searchArchive('user_123', 'food preferences');
+// Text-based search
+const textResults = await memory.searchArchive('user_123', 'food preferences', {
+  searchType: 'text'
+});
+
+// Semantic search
+const semanticResults = await memory.searchArchive('user_123', 'dietary restrictions', {
+  searchType: 'similarity'
+});
+
+// Hybrid search (combines text and semantic search)
+const hybridResults = await memory.searchArchive('user_123', 'food allergies', {
+  searchType: 'hybrid',
+  vectorWeight: 0.7,  // Optional: weight for semantic search (default: 0.7)
+  textWeight: 0.3    // Optional: weight for text search (default: 0.3)
+});
+
+// List all entries
+const allEntries = await memory.listArchiveEntries('user_123');
 ```
+
+Each search result includes:
+- The matched entry with its content and metadata
+- A relevance score (0-100)
+- Match details for text searches (exact phrases and matched terms)
 
 ## Storage Providers
 
@@ -227,7 +256,7 @@ docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
 For production, ensure your Redis instance has the RediSearch module installed. Then initialize the providers:
 
 ```typescript
-import { Recall, RedisProvider, RedisArchiveProvider } from '@rkim/recall';
+import { Recall, RedisProvider, RedisArchiveProvider, setupRedisSchema } from '@rkim/recall';
 import { createClient } from 'redis';
 
 // Initialize Redis client
@@ -236,6 +265,16 @@ const client = createClient({
   // Add any additional configuration options
 });
 await client.connect();
+
+// Optional but recommended: Set up Redis schema once during app initialization
+// This creates necessary indexes for vector search and validates existing schema
+await setupRedisSchema(
+  client,
+  'idx:archive',      // Optional: index name
+  'user:archive:',    // Optional: collection prefix
+  1536,              // Optional: vector dimensions
+  false              // Optional: force schema recreation
+);
 
 // Initialize storage provider for chat history and core memory
 const storage = new RedisProvider({
@@ -262,8 +301,16 @@ const recall = new Recall({
 });
 ```
 
+The Redis schema setup:
+- Is optional but recommended for production use
+- Should be done once during application initialization
+- Creates necessary indexes for vector search
+- Validates existing schema if already present
+- Can be forced to recreate with the `force` parameter
+- Is safe to run multiple times (won't recreate if valid)
+- Will log a warning if missing when using the archive provider
+
 The providers will automatically:
-- Create necessary indexes if they don't exist
 - Handle vector embeddings for semantic search
 - Manage JSON storage and retrieval
 - Provide text, semantic, and hybrid search capabilities
