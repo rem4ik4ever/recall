@@ -110,45 +110,6 @@ async function searchBySimilarity() {
   }
 }
 
-async function deleteEntry() {
-  const name = await question('Enter name of entry to delete: ');
-
-  try {
-    const count = await provider.deleteEntriesByName(name);
-    if (count === 0) {
-      console.log('No entries found with that name');
-    } else {
-      console.log(`${count} entry/entries deleted successfully!`);
-    }
-  } catch (error) {
-    console.error('Error deleting entries:', error);
-  }
-}
-
-async function listAllEntries() {
-  try {
-    const entries = await provider.listEntries() as ArchiveEntry[];
-    const count = await provider.count();
-    console.log(`\nTotal entries: ${count}`);
-
-    if (entries.length === 0) {
-      console.log('No entries found');
-      return;
-    }
-
-    entries.forEach((entry, i) => {
-      console.log(`\n--- Entry ${i + 1} ---`);
-      console.log('ID:', entry.id);
-      console.log('Name:', entry.name);
-      console.log('Content:', entry.content);
-      if (entry.metadata) console.log('Metadata:', entry.metadata);
-      console.log('Added:', new Date(entry.timestamp).toLocaleString());
-    });
-  } catch (error) {
-    console.error('Failed to list entries:', error);
-  }
-}
-
 async function hybridSearch() {
   const searchText = await question('Enter search text: ');
 
@@ -188,6 +149,42 @@ async function hybridSearch() {
   }
 }
 
+async function deleteEntry() {
+  const id = await question('Enter entry ID to delete: ');
+  try {
+    await provider.deleteEntry(id);
+    console.log('\nEntry deleted successfully!');
+    const count = await provider.count();
+    console.log(`Total entries: ${count}`);
+  } catch (error) {
+    console.error('Failed to delete entry:', error);
+  }
+}
+
+async function listAllEntries() {
+  try {
+    const entries = await provider.listEntries();
+    if (entries.length === 0) {
+      console.log('\nNo entries found');
+      return;
+    }
+
+    console.log('\nAll Entries:', entries.length, 'total');
+    entries.forEach((entry, i) => {
+      console.log(`\n--- Entry ${i + 1} ---`);
+      console.log('ID:', entry.id);
+      console.log('Name:', entry.name);
+      console.log('Content:', entry.content);
+      if (entry.metadata) {
+        console.log('Metadata:', entry.metadata);
+      }
+      console.log('Timestamp:', new Date(entry.timestamp).toLocaleString());
+    });
+  } catch (error) {
+    console.error('Failed to list entries:', error);
+  }
+}
+
 async function main() {
   await client.connect();
   console.log('Connected to Redis');
@@ -201,6 +198,7 @@ async function main() {
   };
 
   try {
+    // Set up Redis schema (recreates index)
     await setupRedisSchema(
       client,
       config.indexName,
@@ -209,8 +207,6 @@ async function main() {
     );
 
     provider = new RedisArchiveProvider(config);
-    await provider.initialize();
-
     const count = await provider.count();
     console.log(`\nReady to use. Current entries: ${count}`);
   } catch (error) {
@@ -265,7 +261,7 @@ async function main() {
   }
 }
 
-// Run the CLI if this file is executed directly
+// Run the main function if this file is executed directly
 if (require.main === module) {
   main().catch(console.error);
 }

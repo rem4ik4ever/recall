@@ -1,7 +1,7 @@
 import { RedisArchiveProvider, RedisArchiveProviderConfig, setupRedisSchema } from "../src/archiveProviders/RedisArchiveProvider/RedisArchiveProvider";
 import { createClient, RedisClientType } from 'redis';
 import { config } from 'dotenv';
-import { ArchiveEntry } from "../src/types";
+import { ArchiveEntry } from "../src/archiveProviders/types";
 
 // Load environment variables
 config();
@@ -216,55 +216,73 @@ const animals = [
 
 async function seedAnimals() {
   await client.connect();
+  console.log('Connected to Redis');
 
   // Set up Redis schema and initialize provider
   const config: RedisArchiveProviderConfig = {
     client,
     indexName: 'idx:archive',
     collectionName: 'recall:memory:archive:',
-    embeddingModel: 'text-embedding-3-small'
+    embeddingModel: 'text-embedding-3-small',
+    dimensions: 1536 // text-embedding-3-small dimension size
   };
 
   try {
-    // Set up schema and initialize provider
+    // Set up schema
     await setupRedisSchema(
       client,
       config.indexName,
-      config.collectionName
+      config.collectionName,
+      config.dimensions
     );
+    console.log('Redis schema setup complete');
 
     const provider = new RedisArchiveProvider(config);
-    await provider.initialize();
+
+    // Get initial count
+    const initialCount = await provider.count();
+    console.log(`Initial entry count: ${initialCount}`);
 
     // Clear existing entries
-    await provider.clear();
+    if (initialCount > 0) {
+      await provider.clear();
+      console.log('Cleared existing entries');
+    }
 
     // Process all animals in parallel
-    await Promise.all(animals.map(async (animal) => {
+    console.log(`Seeding ${animals.length} animal entries...`);
+    const results = await Promise.all(animals.map(async (animal) => {
       try {
-        const entry: Partial<ArchiveEntry> = {
+        const entry = {
           name: animal.name,
           content: animal.content,
-          metadata: {},
-          timestamp: Date.now()
+          metadata: JSON.stringify({})
         };
 
-        const stored = await provider.addEntry(entry as any);
-        console.log(`Added ${animal.name} to Redis`);
+        await provider.addEntry(entry);
+        return { success: true, name: animal.name };
       } catch (error) {
-        console.error(`Error storing animal: ${animal.name}`, error);
+        console.error(`Failed to add entry for ${animal.name}:`, error);
+        return { success: false, name: animal.name, error };
       }
     }));
 
-    console.log('\nFinished seeding animals into Redis');
+    // Report results
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    const finalCount = await provider.count();
 
-    // Show final count
-    const count = await provider.count();
-    console.log(`Total entries in Redis: ${count}`);
+    console.log('\nSeeding complete:');
+    console.log(`- Successfully added: ${successful} entries`);
+    console.log(`- Failed to add: ${failed} entries`);
+    console.log(`- Final entry count: ${finalCount}`);
+
   } catch (error) {
-    console.error('Error during seeding:', error);
+    console.error('Failed to seed animals:', error);
+    throw error;
   } finally {
     await client.disconnect();
+    console.log('\nDisconnected from Redis');
   }
 }
 

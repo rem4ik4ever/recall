@@ -60,13 +60,11 @@ export class MemoryManager {
   async initialize(previousState?: MemoryState): Promise<void> {
     // Load core and archive memory
     const state = await this.provider.initializeMemoryState(this.memoryKey, this.threadId, previousState);
-    console.log({ state })
     this.coreMemory = state.coreMemory;
 
     if (state?.chatHistory && state.chatHistory.length > 0) {
       this.chatHistory = state.chatHistory;
     } else {
-      console.log("initializing new chat history", state?.chatHistory)
       // Initialize new chat history with system message
       this.chatHistory = [{ role: 'system', content: this.coreMemoryToString() }];
       await this.saveChatHistory();
