@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - 2024-03-XX
+## [1.0.0] - 2024-04-01
 
 ### Breaking Changes
 - **Recall Client Initialization**: Changed how Recall client and providers are initialized. Client must now be pre-configured with providers.
