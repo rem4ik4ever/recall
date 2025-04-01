@@ -4,7 +4,8 @@ import {
   StorageProvider,
   DEFAULT_CORE_BLOCKS,
   ChatSession,
-  MemoryState
+  MemoryState,
+  CoreMessage
 } from "./src";
 import { createTools } from "./src/ai/tools";
 import { ArchiveProvider } from "./src/archiveProviders/base";
@@ -19,44 +20,77 @@ export interface RecallConfig {
   archiveProvider: ArchiveProvider;
   openaiApiKey: string;
   coreBlocks?: CoreBlockConfig[];
+  memoryKey: string;
+  threadId?: string;
+  previousState?: MemoryState;
 }
 
-export class Recall {
-  private storageProvider: StorageProvider;
-  private archiveProvider: ArchiveProvider;
-  private openaiApiKey: string;
-  private coreBlocks: CoreBlockConfig[];
+export class Recall implements ChatSession {
+  private memoryManager: MemoryManager;
+  private _tools: Record<string, any> = {};
 
   constructor(config: RecallConfig) {
-    this.storageProvider = config.storageProvider;
-    this.openaiApiKey = config.openaiApiKey;
-    this.coreBlocks = config.coreBlocks || DEFAULT_CORE_BLOCKS;
-    this.archiveProvider = config.archiveProvider;
+    const {
+      storageProvider,
+      archiveProvider,
+      openaiApiKey,
+      coreBlocks = DEFAULT_CORE_BLOCKS,
+      memoryKey,
+      threadId = 'default',
+      previousState
+    } = config;
+
+    this.memoryManager = new MemoryManager(
+      storageProvider,
+      archiveProvider,
+      openaiApiKey,
+      memoryKey,
+      threadId
+    );
+
+    // Initialize the session
+    this.initializeSession(coreBlocks, previousState);
   }
 
-  async createChatSession(memoryKey: string, threadId: string = 'default', previousState?: MemoryState): Promise<ChatSession> {
-    const memoryManager = new MemoryManager(this.storageProvider, this.archiveProvider, this.openaiApiKey, memoryKey, threadId);
-    await this.archiveProvider.initialize()
-
-    // Initialize memory manager
-    await memoryManager.initialize(previousState);
+  private async initializeSession(coreBlocks: CoreBlockConfig[], previousState?: MemoryState): Promise<void> {
+    // Initialize archive provider
+    await this.memoryManager.initialize(previousState);
 
     // Initialize core blocks with default content
-    for (const block of this.coreBlocks) {
-      const existingMemory = await memoryManager.getCoreMemory();
+    for (const block of coreBlocks) {
+      const existingMemory = await this.memoryManager.getCoreMemory();
       const existingEntry = existingMemory?.[block.key];
       if (!existingEntry) {
-        await memoryManager.updateCoreMemory(block.key, block?.defaultContent ?? '', block.description);
+        await this.memoryManager.updateCoreMemory(block.key, block?.defaultContent ?? '', block.description);
       }
     }
 
-    return {
-      chatHistory: memoryManager.getChatHistory.bind(memoryManager),
-      addUserMessage: memoryManager.addUserMessage.bind(memoryManager),
-      addAIMessage: memoryManager.addAIMessage.bind(memoryManager),
-      addAIMessages: memoryManager.addAIMessages.bind(memoryManager),
-      getCoreBlocks: memoryManager.getCoreMemory.bind(memoryManager),
-      tools: await createTools(memoryManager)
-    };
+    // Initialize tools
+    this._tools = await createTools(this.memoryManager);
+  }
+
+  // ChatSession interface methods
+  async chatHistory(): Promise<CoreMessage[]> {
+    return this.memoryManager.getChatHistory();
+  }
+
+  async addUserMessage(message: CoreMessage): Promise<void> {
+    return this.memoryManager.addUserMessage(message);
+  }
+
+  async addAIMessage(message: CoreMessage): Promise<void> {
+    return this.memoryManager.addAIMessage(message);
+  }
+
+  async addAIMessages(messages: CoreMessage[]): Promise<void> {
+    return this.memoryManager.addAIMessages(messages);
+  }
+
+  async getCoreBlocks() {
+    return this.memoryManager.getCoreMemory();
+  }
+
+  get tools(): Record<string, any> {
+    return this._tools;
   }
 } 
