@@ -87,49 +87,13 @@ export class RedisArchiveProvider extends ArchiveProvider {
     this.client = config.client;
     this.indexName = config.indexName || 'idx:archive';
     this.collectionName = config.collectionName || 'recall:memory:archive:';
-  }
 
-  async initialize(): Promise<void> {
-    try {
-      // Check if Redis Search is available
-      //const rawModules = await this.client.moduleList();
-      //const modules = (rawModules as unknown) as Array<{ name: string }>;
-      //const hasSearch = modules.some(module =>
-      //  module?.name?.toLowerCase() === 'search' ||
-      //  module?.name?.toLowerCase() === 'redisearch'
-      //);
-
-      //if (!hasSearch) {
-      //  throw new Error(
-      //    'Redis Search module is not available. This provider requires Redis Stack or Redis with RediSearch module installed. ' +
-      //    'Please ensure you have the correct Redis version with Search capability enabled.'
-      //  );
-      //}
-
-      // Check if index exists
-      try {
-        await this.client.ft.info(this.indexName);
-        // Ensure schema has ID field
-        await this.ensureSchemaHasIdField();
-      } catch (e: any) {
-        await setupRedisSchema(this.client, this.indexName, this.collectionName, this.config.dimensions);
-        if (e.message.includes('Unknown Index')) {
-          throw new Error(
-            `Redis Search index '${this.indexName}' not found. Please run setupRedisSchema() before using the provider.`
-          );
-        }
-        throw e;
-      }
-    } catch (error) {
-      if (error instanceof Error &&
-        (error.message.includes('Redis Search module is not available') ||
-          error.message.includes('Redis Search index'))) {
-        console.error('\x1b[31mError:\x1b[0m', error.message);
-      } else {
-        console.error('Error initializing Redis provider:', error);
-      }
-      throw error;
-    }
+    // Set up Redis schema in constructor
+    setupRedisSchema(this.client, this.indexName, this.collectionName, this.config.dimensions)
+      .catch(error => {
+        console.error('Error setting up Redis schema:', error);
+        throw error;
+      });
   }
 
   async cleanup(): Promise<void> {

@@ -15,15 +15,11 @@ export class RedisProvider implements StorageProvider {
   constructor(config: RedisProviderConfig) {
     this.redis = config.client;
     this.prefix = config.prefix || 'recall:memory:';
-  }
 
-  async initialize(): Promise<void> {
-    // Verify Redis connection
-    try {
-      await this.redis.ping();
-    } catch (error) {
+    // Verify Redis connection in constructor
+    this.redis.ping().catch(error => {
       throw new Error('Failed to connect to Redis: ' + error);
-    }
+    });
   }
 
   private getKey(memoryKey: string): string {

@@ -260,10 +260,6 @@ const recall = new Recall({
   memoryKey: 'user_123',
   threadId: 'main'
 });
-
-// Initialize providers (creates search index if needed)
-await storage.initialize();
-await archive.initialize();
 ```
 
 The providers will automatically:
