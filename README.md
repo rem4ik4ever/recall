@@ -45,11 +45,16 @@ const archive = new RedisArchiveProvider({
 
 // Initialize Recall with configured providers
 const memory = new Recall({
-  storageProvider: storage,  // Required: for chat history and core memory
-  archiveProvider: archive,  // Optional: for RAG capabilities
+  storageProvider: storage,
+  archiveProvider: archive,
   openaiApiKey: process.env.OPENAI_API_KEY,
-  memoryKey: 'user_123',  // Unique identifier for this user's memory
-  threadId: 'main',  // Conversation thread identifier
+  memoryKey: 'user_123',
+  threadId: 'main',
+  memoryOptions: { // optional
+    maxContextSize: 25000,     // Custom max context size
+    coreBlockTokenLimit: 3000, // Custom core block token limit
+    chatTokenLimit: 15000,     // Custom chat token limit
+  },
   coreBlocks: [
     {
       key: 'user_context',
@@ -66,17 +71,54 @@ const memory = new Recall({
   ]
 });
 
-// Create a chat session
-const session = await memory.createChatSession('user_123', 'main');
-
-// Add messages
-await session.addMessages({ content: 'Hello!', role: 'user' });
+// Add messages directly to the memory instance
+await memory.addMessages({ content: 'Hello!', role: 'user' });
 
 // Add multiple messages at once
-await session.addMessages([
+await memory.addMessages([
   { content: 'Hi there!', role: 'assistant' },
   { content: 'How can I help?', role: 'assistant' }
 ]);
+```
+
+## Memory Limits Configuration
+
+Recall provides configurable memory limits to help manage token usage and context size:
+
+- `chatTokenLimit`: Maximum number of tokens in chat history (default: 10000)
+- `maxContextSize`: Maximum total context size in tokens (default: 20000)
+- `coreBlockTokenLimit`: Maximum tokens per core memory block (default: 2000)
+
+You can set these limits during initialization:
+
+```typescript
+const memory = new Recall({
+  storageProvider: storage,
+  archiveProvider: archive,
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  memoryKey: 'user_123',
+  threadId: 'main',
+  maxContextSize: 25000,     // Custom max context size
+  coreBlockTokenLimit: 3000, // Custom core block token limit
+  chatTokenLimit: 15000,     // Custom chat token limit
+  coreBlocks: [
+    // ... core blocks configuration ...
+  ]
+});
+```
+
+These limits help manage memory and token usage:
+- `chatTokenLimit`: When exceeded, older messages are automatically summarized
+- `maxContextSize`: Ensures total context stays within model limits
+- `coreBlockTokenLimit`: Prevents individual core memory blocks from becoming too large
+
+The limits can also be updated after initialization:
+
+```typescript
+// Update limits as needed
+memory.maxContextSize = 30000;
+memory.chatTokenLimit = 20000;
+memory.coreBlockTokenLimit = 4000;
 ```
 
 ## Core Memory
@@ -113,15 +155,12 @@ const memory = new Recall({
   ]
 });
 
-// Create a chat session to access memory tools
-const session = await memory.createChatSession('user_123', 'main');
-
 // Pass tools to AI Agent
 import { generateText } from 'ai';
 
 const result = await generateText({
   model: 'gpt-4',
-  tools: session.tools,  // Memory tools are automatically available to the AI
+  tools: memory.tools,  // Memory tools are automatically available to the AI
   messages: [
     {
       role: 'system',
@@ -156,17 +195,30 @@ Chat History maintains the ongoing conversation between users and AI Agents, inc
 ### Example Usage
 
 ```typescript
-// Create chat sessions
-const mainThread = await memory.createChatSession('user_123', 'main');
-const analyticsThread = await memory.createChatSession('user_123', 'analytics');
+// Create a memory instance with different thread IDs
+const memory = new Recall({
+  storageProvider,
+  archiveProvider,
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  memoryKey: 'user_123',
+  threadId: 'main'  // Main conversation thread
+});
+
+const analyticsMemory = new Recall({
+  storageProvider,
+  archiveProvider,
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  memoryKey: 'user_123',
+  threadId: 'analytics'  // Analytics-specific thread
+});
 
 // Add messages
-await mainThread.addMessages({
+await memory.addMessages({
   content: 'Analyze this dataset',
   role: 'user'
 });
 
-await mainThread.addMessages({
+await memory.addMessages({
   content: 'I\'ll analyze the data',
   role: 'assistant',
   tool_calls: [{
@@ -179,14 +231,13 @@ await mainThread.addMessages({
 });
 
 // Add multiple messages at once
-await mainThread.addMessages([
+await memory.addMessages([
   { content: 'Here are the results', role: 'assistant' },
   { content: 'Thanks!', role: 'user' }
 ]);
 
 // Get history
-const history = await mainThread.getChatHistory();
-const summarizedHistory = await mainThread.getSummarizedHistory();
+const history = await memory.chatHistory();
 ```
 
 ## Archive Memory (RAG)
@@ -199,32 +250,35 @@ Archive Memory provides RAG capabilities for long-term information storage and r
 ### Example Usage
 
 ```typescript
-// Store information
-await memory.addToArchive('user_123', {
+// Store information using tools
+await memory.tools.archivalMemoryInsert({
   content: 'User prefers vegetarian food',
   name: 'Dietary Preferences',  // Optional: name for the entry
   metadata: { category: 'preferences' }  // Optional: additional metadata
 });
 
 // Text-based search
-const textResults = await memory.searchArchive('user_123', 'food preferences', {
-  searchType: 'text'
+const textResults = await memory.tools.archivalMemorySearch({
+  query: 'food preferences',
+  type: 'text'
 });
 
 // Semantic search
-const semanticResults = await memory.searchArchive('user_123', 'dietary restrictions', {
-  searchType: 'similarity'
+const semanticResults = await memory.tools.archivalMemorySearch({
+  query: 'dietary restrictions',
+  type: 'similarity'
 });
 
 // Hybrid search (combines text and semantic search)
-const hybridResults = await memory.searchArchive('user_123', 'food allergies', {
-  searchType: 'hybrid',
+const hybridResults = await memory.tools.archivalMemorySearch({
+  query: 'food allergies',
+  type: 'hybrid',
   vectorWeight: 0.7,  // Optional: weight for semantic search (default: 0.7)
   textWeight: 0.3    // Optional: weight for text search (default: 0.3)
 });
 
-// List all entries
-const allEntries = await memory.listArchiveEntries('user_123');
+// Get chat history
+const history = await memory.chatHistory();
 ```
 
 Each search result includes:

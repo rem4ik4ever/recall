@@ -1,4 +1,6 @@
 import { CoreMessage, Tool } from 'ai'
+import { StorageProvider } from './storageProviders/storage-provider';
+import { ArchiveProvider } from './archiveProviders/base';
 export type { CoreMessage };
 
 export type ArchivalMemoryPayload = {
@@ -49,4 +51,19 @@ export interface ChatSession {
   addAIMessages: (messages: CoreMessage[]) => Promise<void>;
   getCoreBlocks: () => Promise<Record<CoreBlock, CoreMemoryEntry> | null>;
   tools: Record<string, Tool>;
+}
+
+export interface RecallConfig {
+  storageProvider: StorageProvider;
+  archiveProvider: ArchiveProvider;
+  openaiApiKey: string;
+  coreBlocks?: CoreBlockConfig[];
+  memoryKey: string;
+  threadId?: string;
+  previousState?: MemoryState;
+  memoryOptions?: {
+    chatTokenLimit?: number;     // Default: 10000
+    maxContextSize?: number;     // Default: 20000
+    coreBlockTokenLimit?: number; // Default: 2000
+  };
 }

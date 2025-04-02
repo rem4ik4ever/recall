@@ -378,4 +378,94 @@ describe('MemoryManager', () => {
       expect(nonSystemMessages).toHaveLength(0);
     });
   });
+
+  describe('memory limits configuration', () => {
+    it('should initialize with default memory limits', () => {
+      const defaultManager = new MemoryManager(
+        storageProvider,
+        archiveProvider,
+        openaiApiKey,
+        memoryKey,
+        threadId
+      );
+      expect(defaultManager['chatTokenLimit']).toBe(10000); // Default chat token limit
+      expect(defaultManager['maxContextSize']).toBe(20000); // Default max context size
+      expect(defaultManager['coreBlockTokenLimit']).toBe(2000); // Default core block token limit
+    });
+
+    it('should initialize with custom memory limits', () => {
+      const customManager = new MemoryManager(
+        storageProvider,
+        archiveProvider,
+        openaiApiKey,
+        memoryKey,
+        threadId,
+        25000, // maxContextSize
+        3000,  // coreBlockTokenLimit
+        15000  // chatTokenLimit
+      );
+      expect(customManager['chatTokenLimit']).toBe(15000);
+      expect(customManager['maxContextSize']).toBe(25000);
+      expect(customManager['coreBlockTokenLimit']).toBe(3000);
+    });
+
+    it('should enforce chat token limit when adding messages', async () => {
+      const smallLimitManager = new MemoryManager(
+        storageProvider,
+        archiveProvider,
+        openaiApiKey,
+        memoryKey,
+        threadId,
+        undefined, // default maxContextSize
+        undefined, // default coreBlockTokenLimit
+        100 // very small chatTokenLimit for testing
+      );
+
+      await smallLimitManager.initialize();
+
+      // Add a message that should exceed the token limit
+      const longMessage = {
+        role: 'user' as const,
+        content: 'a'.repeat(200)
+      };
+      await smallLimitManager.addMessages(longMessage);
+
+      const history = await smallLimitManager.getChatHistory();
+      expect(history.length).toBeLessThan(3); // Should only have system message and possibly truncated history
+    });
+
+    it('should enforce core block token limit', async () => {
+      const smallBlockLimitManager = new MemoryManager(
+        storageProvider,
+        archiveProvider,
+        openaiApiKey,
+        memoryKey,
+        threadId,
+        undefined, // default maxContextSize
+        50, // very small coreBlockTokenLimit for testing
+        undefined // default chatTokenLimit
+      );
+
+      await smallBlockLimitManager.initialize();
+
+      // Try to update core memory with content that exceeds the token limit
+      const longContent = 'a'.repeat(500); // This should definitely be more than 50 tokens
+      await expect(async () => {
+        await smallBlockLimitManager.updateCoreMemory('test-block', longContent, 'test description');
+      }).rejects.toThrow('Core memory block content exceeds token limit');
+    });
+
+    it('should allow updating memory limits after initialization', async () => {
+      await memoryManager.initialize();
+
+      // Update limits
+      memoryManager['chatTokenLimit'] = 15000;
+      memoryManager['maxContextSize'] = 25000;
+      memoryManager['coreBlockTokenLimit'] = 3000;
+
+      expect(memoryManager['chatTokenLimit']).toBe(15000);
+      expect(memoryManager['maxContextSize']).toBe(25000);
+      expect(memoryManager['coreBlockTokenLimit']).toBe(3000);
+    });
+  });
 }); 
