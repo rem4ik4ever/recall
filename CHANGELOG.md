@@ -1,5 +1,28 @@
 # Changelog
 
+## [2.1.0] - 2024-04-03
+
+### Features
+- **Memory Configuration**: Added configurable memory limits
+  ```typescript
+  const recall = new Recall({
+    // ... other config ...
+    memoryOptions: {
+      chatTokenLimit: 15000,      // Default: 10000
+      maxContextSize: 25000,      // Default: 20000
+      coreBlockTokenLimit: 3000   // Default: 2000
+    }
+  });
+  ```
+  - Added ability to customize chat history token limit
+  - Added ability to customize maximum context size
+  - Added ability to customize core block token limit
+  - All limits are optional with sensible defaults
+
+### Documentation
+- Added memory configuration options documentation with examples
+- Added best practices for memory limit configuration
+
 ## [2.0.0] - 2024-04-02
 
 ### Breaking Changes

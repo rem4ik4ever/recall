@@ -38,7 +38,8 @@ export class MemoryManager {
     memoryKey: string,
     threadId: string,
     maxContextSize?: number,
-    coreBlockTokenLimit?: number
+    coreBlockTokenLimit?: number,
+    chatTokenLimit?: number
   ) {
     this.provider = provider;
     this.archiveProvider = archiveProvider;
@@ -50,6 +51,9 @@ export class MemoryManager {
     }
     if (coreBlockTokenLimit) {
       this.coreBlockTokenLimit = coreBlockTokenLimit;
+    }
+    if (chatTokenLimit) {
+      this.chatTokenLimit = chatTokenLimit;
     }
   }
 
