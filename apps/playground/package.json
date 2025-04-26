@@ -1,0 +1,20 @@
+{
+  "name": "playground",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "seed-animals": "ts-node ./src/seed-animals.ts",
+    "redis-search": "ts-node ./src/redis-search-pl.ts",
+    "chroma-search": "ts-node ./src/chroma-search-pl.ts",
+    "chat": "ts-node ./src/chat.ts"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@aksolab/recall": "*",
+    "@aksolab/recall-redis-search-adapter": "*",
+    "@aksolab/recall-archive-provider": "*"
+  },
+  "author": "",
+  "license": "ISC"
+}

@@ -1,6 +1,6 @@
 import { CoreMessage, Tool } from 'ai'
 import { StorageProvider } from './storageProviders/storage-provider';
-import { ArchiveProvider } from './archiveProviders/base';
+import { ArchiveProvider } from '@aksolab/recall-archive-provider';
 export type { CoreMessage };
 
 export type ArchivalMemoryPayload = {
