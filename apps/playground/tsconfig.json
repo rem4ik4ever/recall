@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@aksolab/recall-archive-provider": ["packages/archive-provider/src"],
+      "@aksolab/recall-archive-provider/*": ["packages/archive-provider/src/*"],
+      "@aksolab/recall-redis-search-adapter": ["packages/redis-search-adapter/src"],
+      "@aksolab/recall-redis-search-adapter/*": ["packages/redis-search-adapter/src/*"],
+      "@aksolab/recall": ["packages/recall/src"],
+      "@aksolab/recall/*": ["packages/recall/src/*"]
+    }
+  }
+} 

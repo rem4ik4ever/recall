@@ -4,8 +4,7 @@ import { StorageProvider } from "./storageProviders/storage-provider";
 import { summarizeMessages } from "./ai/summarizer";
 import { encoding_for_model } from "tiktoken";
 import { AGENT_PROMPT } from "./ai/prompts";
-import { ArchiveProvider } from "./archiveProviders/base";
-import { ArchiveEntry } from "./archiveProviders/types";
+import { ArchiveProvider, ArchiveEntry } from "@aksolab/recall-archive-provider";
 
 export class MemoryManager {
   private provider: StorageProvider;

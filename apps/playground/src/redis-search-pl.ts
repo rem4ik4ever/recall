@@ -1,9 +1,8 @@
-//import { RedisArchiveProvider, RedisArchiveProviderConfig, setupRedisSchema } from "@aksolab/recall-redis-search-adapter";
+import { RedisArchiveProvider, RedisArchiveProviderConfig, setupRedisSchema } from "@aksolab/recall-redis-search-adapter";
 import { config } from 'dotenv';
 import { createClient, RedisClientType } from 'redis';
 import readline from 'readline';
-import { ArchiveEntry } from "../packages/recall/src/types";
-import { SearchResult } from "../packages/recall/src/archiveProviders/types";
+import { ArchiveEntry, SearchResult } from "@aksolab/recall-archive-provider";
 
 // Load environment variables
 config();
@@ -265,5 +264,4 @@ async function main() {
 if (require.main === module) {
   main().catch(console.error);
 }
-
 

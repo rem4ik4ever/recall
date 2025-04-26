@@ -50,7 +50,8 @@
   "dependencies": {
     "@ai-sdk/openai": "^1.1.13",
     "ai": "^4.1.45",
-    "tiktoken": "^1.0.20"
+    "tiktoken": "^1.0.20",
+    "@aksolab/recall-archive-provider": "*"
   },
   "devDependencies": {
     "@semantic-release/commit-analyzer": "^11.1.0",
