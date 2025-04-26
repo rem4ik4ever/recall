@@ -1,6 +1,6 @@
 import { CoreMessage } from "ai";
-import { ArchivalMemoryPayload, CoreBlock, CoreMemoryEntry, MemoryState } from "./types";
-import { StorageProvider } from "./storageProviders/storage-provider";
+import { ArchivalMemoryPayload, CoreBlock, CoreMemoryEntry, MemoryState } from "@aksolab/recall-types";
+import { StorageProvider } from "@aksolab/recall-storage-provider";
 import { summarizeMessages } from "./ai/summarizer";
 import { encoding_for_model } from "tiktoken";
 import { AGENT_PROMPT } from "./ai/prompts";

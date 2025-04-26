@@ -1,6 +1,6 @@
 import { createClient, RedisClientType } from 'redis';
 import { RedisProvider } from './RedisProvider';
-import { CoreMessage, CoreBlock, CoreMemoryEntry } from '../../types';
+import { CoreMessage, CoreBlock, CoreMemoryEntry } from '@aksolab/recall-types';
 
 describe('RedisProvider', () => {
   let provider: RedisProvider;

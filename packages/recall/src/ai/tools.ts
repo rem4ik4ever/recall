@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CoreBlock } from '../types';
+import { CoreBlock } from '@aksolab/recall-types';
 import { MemoryManager } from '../memoryManager';
 import { tool } from 'ai'
 

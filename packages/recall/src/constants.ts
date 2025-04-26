@@ -1,4 +1,4 @@
-import { CoreBlockConfig } from "./types";
+import { CoreBlockConfig } from "@aksolab/recall-types";
 
 export const CORE_BLOCKS = {
   USER: 'user',
