@@ -1,4 +1,4 @@
-import { Recall, ChatSession } from "@aksolab/recall";
+import { Recall } from "@aksolab/recall";
 import { RedisProvider } from "@aksolab/recall/dist/storageProviders/RedisProvider";
 import readline from 'readline';
 import { config } from 'dotenv';
@@ -7,6 +7,7 @@ import { CoreAssistantMessage, CoreToolMessage, streamText } from 'ai';
 import { RedisArchiveProvider } from "@aksolab/recall-redis-search-adapter";
 import { createClient, RedisClientType } from "redis";
 import { CoreMessage } from 'ai'
+import { ChatSession } from "@aksolab/recall-types";
 
 // Load environment variables
 config();

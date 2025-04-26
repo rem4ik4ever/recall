@@ -13,7 +13,9 @@
   "dependencies": {
     "@aksolab/recall": "*",
     "@aksolab/recall-redis-search-adapter": "*",
-    "@aksolab/recall-archive-provider": "*"
+    "@aksolab/recall-archive-provider": "*",
+    "@aksolab/recall-storage-provider": "*",
+    "@aksolab/recall-types": "*"
   },
   "author": "",
   "license": "ISC"
