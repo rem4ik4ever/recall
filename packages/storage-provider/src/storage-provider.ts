@@ -1,5 +1,5 @@
 import { CoreMessage } from "ai";
-import { CoreBlock, CoreMemoryEntry, MemoryState } from "../types";
+import { CoreBlock, CoreMemoryEntry, MemoryState } from "@aksolab/recall-types";
 
 export interface StorageProvider {
   /**

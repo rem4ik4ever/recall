@@ -1,6 +1,6 @@
 import { CoreMessage } from 'ai';
-import { MemoryState, CoreBlock, CoreMemoryEntry, ArchiveEntry } from '../../types';
-import { StorageProvider } from '../storage-provider';
+import { MemoryState, CoreBlock, CoreMemoryEntry } from '@aksolab/recall-types';
+import { StorageProvider } from '@aksolab/recall-storage-provider';
 import { RedisClientType } from 'redis';
 
 export interface RedisProviderConfig {

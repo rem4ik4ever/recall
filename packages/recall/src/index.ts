@@ -1,10 +1,10 @@
 export * from './memoryManager';
-export * from './storageProviders/storage-provider';
 export * from './constants';
 export * from './types';
 export * from './ai';
 
-import { ChatSession, CoreMessage, RecallConfig, CoreBlockConfig, MemoryState } from './types';
+import { ChatSession, CoreMessage, CoreBlockConfig, MemoryState } from '@aksolab/recall-types';
+import { RecallConfig } from './types';
 import { MemoryManager } from './memoryManager';
 import { DEFAULT_CORE_BLOCKS } from './constants';
 import { createTools } from './ai';
