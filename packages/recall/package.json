@@ -1,0 +1,80 @@
+{
+  "name": "@aksolab/recall",
+  "version": "2.1.1",
+  "description": "A memory management package for AI SDK memory functionality",
+  "author": "Rem Kim <rem4ik4ever@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rem4ik4ever/recall.git"
+  },
+  "keywords": [
+    "memory",
+    "recall",
+    "typescript"
+  ],
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "jest",
+    "prepublishOnly": "npm run build",
+    "release": "semantic-release",
+    "create-release": "chmod +x ./scripts/create-release.sh && ./scripts/create-release.sh",
+    "finish-release": "chmod +x ./scripts/finish-release.sh && ./scripts/finish-release.sh",
+    "changelog": "chmod +x ./scripts/generate-changelog.sh && ./scripts/generate-changelog.sh",
+    "chat": "ts-node playground/test-agent.ts",
+    "redis-search": "ts-node playground/redis-search-pl.ts",
+    "redis-seed": "ts-node playground/seed-animals.ts",
+    "chroma-search": "ts-node playground/chromadb-search-pl.ts",
+    "chroma-seed": "ts-node playground/seed-animals-chroma.ts"
+  },
+  "release": {
+    "branches": [
+      "main"
+    ],
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ]
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@ai-sdk/openai": "^1.1.13",
+    "ai": "^4.1.45",
+    "tiktoken": "^1.0.20"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^11.1.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.6",
+    "@semantic-release/npm": "^11.0.2",
+    "@semantic-release/release-notes-generator": "^12.1.0",
+    "semantic-release": "^23.0.2",
+    "redis": "^4.7.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.11.24",
+    "csv-parse": "^5.6.0",
+    "csv-stringify": "^6.5.2",
+    "dotenv": "^16.4.5",
+    "install": "^0.13.0",
+    "jest": "^29.7.0",
+    "npm": "^11.1.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
+  },
+  "bugs": {
+    "url": "https://github.com/rem4ik4ever/recall/issues"
+  },
+  "homepage": "https://github.com/rem4ik4ever/recall#readme"
+}
