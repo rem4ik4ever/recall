@@ -1,10 +1,10 @@
-import { Recall, RedisProvider } from "../index";
-import { ChatSession } from "../src/types";
+import { Recall, RedisProvider } from "../packages/recall/index";
+import { ChatSession } from "../packages/recall/src/types";
 import readline from 'readline';
 import { config } from 'dotenv';
 import { openai } from '@ai-sdk/openai';
 import { CoreAssistantMessage, Tool, CoreToolMessage, streamText, tool } from 'ai';
-import { RedisArchiveProvider, setupRedisSchema } from "../src/archiveProviders/RedisArchiveProvider/RedisArchiveProvider";
+//import { RedisArchiveProvider, setupRedisSchema } from "@aksolab/recall-redis-search-adapter";
 import { createClient, RedisClientType } from "redis";
 import { CoreMessage } from 'ai'
 

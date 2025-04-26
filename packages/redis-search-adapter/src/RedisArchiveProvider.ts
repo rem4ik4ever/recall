@@ -1,6 +1,5 @@
 import { RedisClientType, SchemaFieldTypes, VectorAlgorithms, SearchOptions as RedisSearchOptions } from 'redis';
-import { ArchiveProvider } from '../base';
-import { ArchiveEntry, SearchResult, SearchOptions, SearchByTextOptions, SearchBySimilarityOptions, HybridSearchOptions, ProviderConfig } from '../types';
+import { ArchiveProvider, ArchiveEntry, SearchResult, SearchOptions, SearchByTextOptions, SearchBySimilarityOptions, HybridSearchOptions, ProviderConfig } from '@aksolab/recall-archive-provider';
 import { embed } from 'ai';
 import { openai } from '@ai-sdk/openai';
 
@@ -8,6 +7,7 @@ export interface RedisArchiveProviderConfig extends ProviderConfig {
   dimensions?: number; // Vector dimensions, defaults to 1536 for text-embedding-3-small
   collectionName?: string;    // Key prefix for Redis, collection name
   indexName?: string; // Search index name
+  embeddingModel?: string; // Model to use for embeddings
   client: RedisClientType; // Pre-configured Redis client
 }
 
@@ -81,12 +81,14 @@ export class RedisArchiveProvider extends ArchiveProvider {
   private readonly client: RedisClientType;
   private readonly indexName: string;
   private readonly collectionName: string;
+  protected readonly config: RedisArchiveProviderConfig;
 
   constructor(config: RedisArchiveProviderConfig) {
     super(config);
     this.client = config.client;
     this.indexName = config.indexName || 'idx:archive';
     this.collectionName = config.collectionName || 'recall:memory:archive:';
+    this.config = config;
   }
 
   async cleanup(): Promise<void> {

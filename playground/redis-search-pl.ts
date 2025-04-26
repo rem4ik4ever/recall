@@ -1,9 +1,9 @@
-import { RedisArchiveProvider, RedisArchiveProviderConfig, setupRedisSchema } from "../src/archiveProviders/RedisArchiveProvider/RedisArchiveProvider";
+//import { RedisArchiveProvider, RedisArchiveProviderConfig, setupRedisSchema } from "@aksolab/recall-redis-search-adapter";
 import { config } from 'dotenv';
 import { createClient, RedisClientType } from 'redis';
 import readline from 'readline';
-import { ArchiveEntry } from "../src/types";
-import { SearchResult } from "../src/archiveProviders/types";
+import { ArchiveEntry } from "../packages/recall/src/types";
+import { SearchResult } from "../packages/recall/src/archiveProviders/types";
 
 // Load environment variables
 config();

@@ -1,6 +1,6 @@
 import type { RedisClientType } from 'redis';
 import { RedisArchiveProvider, setupRedisSchema } from './RedisArchiveProvider';
-import { ArchiveEntry } from '../types';
+import { ArchiveEntry } from '@aksolab/recall';
 
 // Mock the ai package
 jest.mock('ai', () => ({

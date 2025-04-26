@@ -1,0 +1,16 @@
+{
+  "name": "@aksolab/recall-archive-provider",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@aksolab/recall": "*"
+  },
+  "author": "",
+  "license": "ISC"
+}

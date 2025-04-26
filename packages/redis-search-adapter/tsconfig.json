@@ -15,7 +15,12 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["jest", "node"]
+    "types": ["jest", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@aksolab/recall-archive-provider": ["../archive-provider/src"],
+      "@aksolab/recall-archive-provider/*": ["../archive-provider/src/*"]
+    }
   },
   "include": [
     "src/**/*.ts",
@@ -25,5 +30,8 @@
     "dist",
     "**/*.test.ts",
     "**/__tests__/*"
+  ],
+  "references": [
+    { "path": "../archive-provider" }
   ]
 }
