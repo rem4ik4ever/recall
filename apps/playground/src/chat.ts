@@ -1,4 +1,5 @@
 import { Recall, ChatSession } from "@aksolab/recall";
+import { RedisProvider } from "@aksolab/recall/dist/storageProviders/RedisProvider";
 import readline from 'readline';
 import { config } from 'dotenv';
 import { openai } from '@ai-sdk/openai';
