@@ -1,5 +1,5 @@
 {
-  "name": "@aksolab/recall-archive-provider",
+  "name": "@aksolab/recall-storage-provider",
   "version": "0.0.1",
   "description": "",
   "scripts": {
