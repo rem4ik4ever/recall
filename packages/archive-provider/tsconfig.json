@@ -15,8 +15,7 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["jest", "node"],
-    "composite": true
+    "types": ["jest", "node"]
   },
   "include": [
     "src/**/*.ts",

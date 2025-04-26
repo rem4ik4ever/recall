@@ -1,19 +1,29 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
   "compilerOptions": {
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "node",
+    "outDir": "dist",
+    "rootDir": ".",
+    "declaration": true,
+    "declarationMap": true,
     "esModuleInterop": true,
-    "strict": true,
     "skipLibCheck": true,
-    "baseUrl": "../..",
-    "paths": {
-      "@aksolab/recall-archive-provider": ["packages/archive-provider/src"],
-      "@aksolab/recall-archive-provider/*": ["packages/archive-provider/src/*"],
-      "@aksolab/recall-redis-search-adapter": ["packages/redis-search-adapter/src"],
-      "@aksolab/recall-redis-search-adapter/*": ["packages/redis-search-adapter/src/*"],
-      "@aksolab/recall": ["packages/recall/src"],
-      "@aksolab/recall/*": ["packages/recall/src/*"]
-    }
-  }
-} 
+    "strict": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "noUncheckedIndexedAccess": true,
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "src/**/*.ts",
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/__tests__/*"
+  ]
+}

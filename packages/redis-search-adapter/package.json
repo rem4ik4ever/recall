@@ -2,7 +2,6 @@
   "name": "@aksolab/recall-redis-search-adapter",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
@@ -22,6 +21,13 @@
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2"
   },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "author": "",
   "license": "ISC"
 }
