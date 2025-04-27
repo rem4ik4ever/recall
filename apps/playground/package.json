@@ -2,6 +2,7 @@
   "name": "playground",
   "version": "1.0.0",
   "description": "",
+  "private": true,
   "scripts": {
     "seed-animals": "ts-node ./src/seed-animals.ts",
     "redis-search": "ts-node ./src/redis-search-pl.ts",
