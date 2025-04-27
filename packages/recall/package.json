@@ -1,6 +1,6 @@
 {
   "name": "@aksolab/recall",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "description": "A memory management package for AI SDK memory functionality",
   "author": "Rem Kim <rem4ik4ever@gmail.com>",
   "license": "MIT",
@@ -18,7 +18,6 @@
     "build": "tsc",
     "test": "jest",
     "prepublishOnly": "npm run build",
-    "release": "semantic-release",
     "create-release": "chmod +x ./scripts/create-release.sh && ./scripts/create-release.sh",
     "finish-release": "chmod +x ./scripts/finish-release.sh && ./scripts/finish-release.sh",
     "changelog": "chmod +x ./scripts/generate-changelog.sh && ./scripts/generate-changelog.sh",
@@ -27,18 +26,6 @@
     "redis-seed": "ts-node playground/seed-animals.ts",
     "chroma-search": "ts-node playground/chromadb-search-pl.ts",
     "chroma-seed": "ts-node playground/seed-animals-chroma.ts"
-  },
-  "release": {
-    "branches": [
-      "main"
-    ],
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      "@semantic-release/npm",
-      "@semantic-release/github",
-      "@semantic-release/git"
-    ]
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -56,12 +43,6 @@
     "@aksolab/recall-types": "*"
   },
   "devDependencies": {
-    "@semantic-release/commit-analyzer": "^11.1.0",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^9.2.6",
-    "@semantic-release/npm": "^11.0.2",
-    "@semantic-release/release-notes-generator": "^12.1.0",
-    "semantic-release": "^23.0.2",
     "redis": "^4.7.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",

@@ -1,11 +1,12 @@
 {
   "name": "@aksolab/recall-archive-provider",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
   "scripts": {
     "dev": "tsc --watch",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "npm run build"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,6 +16,7 @@
     "LICENSE"
   ],
   "dependencies": {},
-  "author": "",
-  "license": "ISC"
+  "devDependencies": {},
+  "author": "Rem Kim <rem4ik4ever@gmail.com>",
+  "license": "MIT"
 }
