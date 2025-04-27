@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1
+
+### Patch Changes
+
+- updated documentation to show proper imports after monorepo update
+
 ## 3.0.0
 
 ### Major Changes
