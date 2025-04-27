@@ -1,4 +1,4 @@
-# @rkim/recall
+# @aksolab/recall
 
 A memory management for AI applications using that provides persistent core memory, chat history management, and RAG (Retrieval-Augmented Generation) capabilities.
 
@@ -12,17 +12,19 @@ A memory management for AI applications using that provides persistent core memo
 ## Installation
 
 ```bash
-npm install @rkim/recall
+npm install @aksolab/recall
 # or
-yarn add @rkim/recall
+yarn add @aksolab/recall
 # or
-pnpm add @rkim/recall
+pnpm add @aksolab/recall
 ```
 
 ## Quick Start
 
 ```typescript
-import { Recall, RedisProvider, RedisArchiveProvider } from '@rkim/recall';
+import { Recall } from '@aksolab/recall';
+import { RedisProvider } from '@aksolab/recall-redis-storage-adapter';
+import { RedisArchiveProvider } from '@aksolab/recall-redis-search-adapter';
 import { createClient } from 'redis';
 
 // Initialize Redis client
@@ -310,7 +312,9 @@ docker run -d --name redis-stack -p 6379:6379 redis/redis-stack:latest
 For production, ensure your Redis instance has the RediSearch module installed. Then initialize the providers:
 
 ```typescript
-import { Recall, RedisProvider, RedisArchiveProvider, setupRedisSchema } from '@rkim/recall';
+import { Recall } from '@aksolab/recall';
+import { RedisProvider, setupRedisSchema } from '@aksolab/recall-redis-storage-adapter';
+import { RedisArchiveProvider } from '@aksolab/recall-redis-search-adapter';
 import { createClient } from 'redis';
 
 // Initialize Redis client
@@ -374,7 +378,9 @@ The providers will automatically:
 You can implement custom providers by extending the base interfaces:
 
 ```typescript
-import { StorageProvider, ArchiveProvider } from '@rkim/recall';
+import { StorageProvider } from '@aksolab/recall-storage-provider';
+import { ArchiveProvider } from '@aksolab/recall-archive-provider';
+import { Recall } from '@aksolab/recall';
 
 class CustomStorageProvider implements StorageProvider {
   // Implement storage methods
@@ -383,6 +389,13 @@ class CustomStorageProvider implements StorageProvider {
 class CustomArchiveProvider implements ArchiveProvider {
   // Implement archive methods
 }
+
+// Use custom providers with Recall
+const memory = new Recall({
+  storageProvider: new CustomStorageProvider(),
+  archiveProvider: new CustomArchiveProvider(),
+  // ... other configuration
+});
 ```
 
 ## Using with AI Agents

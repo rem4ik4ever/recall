@@ -1,6 +1,6 @@
 {
   "name": "@aksolab/recall",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "A memory management package for AI SDK memory functionality",
   "author": "Rem Kim <rem4ik4ever@gmail.com>",
   "license": "MIT",
